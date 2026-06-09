@@ -778,7 +778,8 @@ export default function Chat({ currentUser, socket, onShowNotification, onUnread
           name: deck.name,
           description: deck.description || '',
           cards,
-          source_deck_id: deck.id
+          source_deck_id: deck.id,
+          custom_image: deck.custom_image || deck.customImage || deck.image || deck.imageUrl || deck.image_url || null
         },
         reply_to: replyToMessage ? {
           id: replyToMessage.id,
@@ -827,7 +828,7 @@ export default function Chat({ currentUser, socket, onShowNotification, onUnread
     if (!deck?.name || !Array.isArray(deck.cards) || !deck.cards.length) return;
 
     try {
-      const created = await api.createDeck(deck.name, deck.description || '', 'chat');
+      const created = await api.createDeck(deck.name, deck.description || '', 'public');
       const createdDeckId = created?.deck?.id;
       if (!createdDeckId) {
         throw new Error('Не удалось создать колоду');
@@ -835,6 +836,19 @@ export default function Chat({ currentUser, socket, onShowNotification, onUnread
 
       for (const card of deck.cards) {
         await api.createCard(createdDeckId, card.front, card.back);
+      }
+
+      const customImage = deck.custom_image || deck.customImage || deck.image || deck.imageUrl || deck.image_url || null;
+      if (customImage) {
+        try {
+          await api.updateDeck(createdDeckId, deck.name, deck.description || '', customImage);
+        } catch (e) {
+          console.warn('Не удалось сохранить изображение колоды:', e);
+        }
+      }
+
+      if (typeof window.refreshMyDecks === 'function') {
+        window.refreshMyDecks();
       }
 
       if (onShowNotification) {

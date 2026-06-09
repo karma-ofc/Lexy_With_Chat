@@ -354,14 +354,27 @@ export default function Auth({ onAuthSuccess, onShowNotification }) {
       localStorage.setItem('lexy_token', result.token);
       localStorage.setItem('lexy_user', JSON.stringify(result.user));
 
-      if (window.AppState) {
-        window.AppState.user = result.user;
-        window.AppState.user.isRegistered = true;
-        saveState();
+      if (!window.AppState) {
+        window.AppState = {
+          user: {},
+          userDecks: [],
+          favoriteDeck: { id: 'favorite', name: 'Избранное', cards: [] },
+          forgottenDeck: { id: 'forgotten', name: 'Забытые карты', cards: [] }
+        };
       }
 
+      window.AppState.user = {
+        ...window.AppState.user,
+        ...result.user,
+        isRegistered: true,
+        notifications_enabled: result.user.notifications_enabled !== undefined ? result.user.notifications_enabled : true,
+        theme: window.AppState.user?.theme || result.user.theme || 'dark'
+      };
+      window.AppState.userDecks = window.AppState.userDecks || [];
+      saveState();
+
       // Синхронизируем данные с сервером
-      if (window.AppState?.userDecks && window.AppState.userDecks.length > 0) {
+      if (window.AppState.userDecks && window.AppState.userDecks.length > 0) {
         try {
           await api.syncSave(window.AppState.userDecks);
           console.log('Data synced to server');
@@ -389,6 +402,9 @@ export default function Auth({ onAuthSuccess, onShowNotification }) {
         }
         if (typeof window.refreshAdminData === 'function') {
           window.refreshAdminData();
+        }
+        if (typeof window.refreshLibrary === 'function') {
+          window.refreshLibrary();
         }
       }, 500);
 
