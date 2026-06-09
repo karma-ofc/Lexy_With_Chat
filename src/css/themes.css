@@ -1,0 +1,114 @@
+/* Темная тема (по умолчанию) */
+.dark-theme {
+    --bg-primary: #080808;
+    --bg-secondary: #1c1c1e;
+    --bg-tertiary: #2c2c2e;
+    --text-primary: #ffffff;
+    --text-secondary: #98989e;
+    --accent: #007aff;
+    --accent-hover: #0051d5;
+    --danger: #ff3b30;
+    --success: #34c759;
+    --warning: #ff9f0a;
+    --border: #3a3a3c;
+    --card-bg: #1c1c1e;
+    --navbar-bg: rgba(8, 8, 8, 0.95);
+    --star: #ff9f0a;
+    --star-default: #ffffff;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    --shadow-hover: 0 8px 20px rgba(0, 0, 0, 0.4);
+    --overlay: rgba(0, 0, 0, 0.7);
+    --golden-bg: #272319;
+    --golden-text: #DEBE49;
+}
+
+/* Светлая тема */
+.light-theme {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f2f2f7;
+    --bg-tertiary: #e5e5ea;
+    --text-primary: #000000;
+    --text-secondary: #6c6c70;
+    --accent: #007aff;
+    --accent-hover: #0051d5;
+    --danger: #ff3b30;
+    --success: #34c759;
+    --warning: #ff9f0a;
+    --border: #c6c6c8;
+    --card-bg: #ffffff;
+    --navbar-bg: rgba(255, 255, 255, 0.95);
+    --star: #ff9f0a;
+    --star-default: #000000;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --shadow-hover: 0 8px 20px rgba(0, 0, 0, 0.15);
+    --overlay: rgba(0, 0, 0, 0.4);
+    --golden-bg: #DADCE0;
+    --golden-text: #3F4346;
+}
+
+/* Theme toggle icons */
+.theme-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    padding-left: 50px;
+}
+
+.theme-icon {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    transition: opacity 0.3s ease;
+    position: absolute;
+    left: 0;
+    border-radius: 50%;
+    background: var(--bg-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-icon img {
+    width: 22px;
+    height: 22px;
+}
+
+/* Dark theme - show moon, hide sun */
+.dark-theme .sun-icon {
+    opacity: 0;
+}
+
+.dark-theme .moon-icon {
+    opacity: 1;
+}
+
+/* Light theme - show sun, hide moon */
+.light-theme .sun-icon {
+    opacity: 1;
+}
+
+.light-theme .moon-icon {
+    opacity: 0;
+}
+
+/* Light theme icon styling - make icons visible on light backgrounds */
+.light-theme .theme-icon {
+    background: var(--bg-tertiary);
+}
+
+.light-theme .theme-icon img {
+    filter: none;
+}
+
+/* Export icon */
+.export-label {
+    display: flex;
+    align-items: center;
+}
+
+.export-label img {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
