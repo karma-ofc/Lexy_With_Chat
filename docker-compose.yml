@@ -41,6 +41,9 @@ services:
       context: .
       dockerfile: Dockerfile
     command: ["node", "server/server.js"]
+    env_file:
+      - ./server/.env
+      - ./chat-server/.env
     environment:
       PORT: 3000
       DB_HOST: postgres
@@ -49,9 +52,6 @@ services:
       DB_PASSWORD: admin
       DB_NAME: lexy
       CHAT_API_URL: http://chat-server:3001
-      JWT_SECRET: lexy-secret-key-2024
-      VAPID_PUBLIC_KEY: BCGYOSd3_aY2jVM4OVhEYz6iPHYqsMuBwtUw29Zc-aXF4bT2Qii6PZy8T8gkPmFlKYVxwvSGicRJ0d3vEnmJNuc
-      VAPID_PRIVATE_KEY: C0-VtuiKEba2LHtMJ1Qi26EFvmY9gp4bh0SD8FhcuSM
     depends_on:
       postgres:
         condition: service_healthy
@@ -65,6 +65,9 @@ services:
       context: .
       dockerfile: Dockerfile
     command: ["node", "server/server_chat.js"]
+    env_file:
+      - ./chat-server/.env
+      - ./server/.env
     environment:
       PORT: 3001
       DB_HOST: postgres
@@ -72,10 +75,6 @@ services:
       DB_USER: postgres
       DB_PASSWORD: admin
       DB_NAME: chat
-      JWT_SECRET: lexy-secret-key-2024
-      ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef
-      VAPID_PUBLIC_KEY: BCGYOSd3_aY2jVM4OVhEYz6iPHYqsMuBwtUw29Zc-aXF4bT2Qii6PZy8T8gkPmFlKYVxwvSGicRJ0d3vEnmJNuc
-      VAPID_PRIVATE_KEY: C0-VtuiKEba2LHtMJ1Qi26EFvmY9gp4bh0SD8FhcuSM
     depends_on:
       postgres:
         condition: service_healthy
