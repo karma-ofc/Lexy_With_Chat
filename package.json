@@ -1,0 +1,28 @@
+{
+  "scripts": {
+    "prestart": "kill-port 3000 3001 5173 5174",
+    "start": "concurrently \"npm run start:client\" \"npm run start:server\" \"npm run start:chat\"",
+    "start:client": "wait-on http://127.0.0.1:3000/api/health && vite --port 5173 --strictPort",
+    "start:server": "cd server && npm start",
+    "start:chat": "cd chat-server && node ../server/server_chat.js",
+    "migrate:chat": "cd server && node migrate_chat_db.js",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-router-dom": "^7.14.2",
+    "react-swipeable": "^7.0.2",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.0.1",
+    "concurrently": "^9.2.1",
+    "kill-port": "^2.0.1",
+    "vite": "^8.0.10",
+    "wait-on": "^9.0.5"
+  }
+}

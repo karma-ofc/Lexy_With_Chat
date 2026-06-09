@@ -1,0 +1,13 @@
+node_modules
+**/node_modules
+dist
+build
+coverage
+.git
+.gitignore
+*.log
+lexy.log
+server/out.log
+migrations/backups
+**/.env
+**/.env.*

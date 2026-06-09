@@ -1,0 +1,69 @@
+@startuml
+left to right direction
+skinparam backgroundColor #0f0f10
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam defaultFontName Arial
+skinparam ArrowColor #bdbdbd
+skinparam ActorBorderColor #d9d9d9
+skinparam ActorFontColor #f3f3f3
+skinparam UsecaseBorderColor #d9d9d9
+skinparam UsecaseBackgroundColor #101214
+skinparam UsecaseFontColor #f3f3f3
+skinparam RectangleBorderColor #5a5a5a
+skinparam RectangleFontColor #e8e8e8
+
+actor "Клиент" as User
+
+rectangle "Микросервис чата" {
+  usecase "Просмотр списка\nдиалогов" as UC1
+  usecase "Открытие личного\nчата" as UC2
+  usecase "Отправка\nтекстового сообщения" as UC3
+  usecase "Отправка фото" as UC4
+  usecase "Ответ\nна сообщение" as UC5
+  usecase "Редактирование\nсвоего сообщения" as UC6
+  usecase "Удаление сообщения\nу себя" as UC7
+  usecase "Удаление сообщения\nдля всех" as UC8
+  usecase "Пометка чата\nкак прочитанного" as UC9
+  usecase "Просмотр индикатора\n\"Печатает\"" as UC10
+  usecase "Создание\nгруппового чата" as UC11
+  usecase "Просмотр\nсписка групп" as UC12
+  usecase "Открытие\nчата группы" as UC13
+  usecase "Добавление участника\nв группу" as UC14
+  usecase "Отправка колоды\nв чат" as UC15
+  usecase "Добавление колоды из чата\nв библиотеку" as UC16
+  usecase "Включение push-\nуведомлений" as UC17
+  usecase "Отключение push-\nуведомлений" as UC18
+}
+
+User --> UC1
+User --> UC2
+User --> UC3
+User --> UC4
+User --> UC5
+User --> UC6
+User --> UC7
+User --> UC8
+User --> UC9
+User --> UC10
+User --> UC11
+User --> UC12
+User --> UC13
+User --> UC14
+User --> UC15
+User --> UC16
+User --> UC17
+User --> UC18
+
+UC3 .> UC2 : <<include>>
+UC4 .> UC2 : <<include>>
+UC5 .> UC2 : <<include>>
+UC6 .> UC2 : <<include>>
+UC7 .> UC2 : <<include>>
+UC8 .> UC2 : <<include>>
+UC9 .> UC2 : <<include>>
+UC10 .> UC2 : <<include>>
+UC14 .> UC13 : <<include>>
+UC15 .> UC2 : <<include>>
+
+@enduml
