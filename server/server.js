@@ -531,7 +531,9 @@ app.post('/api/notifications/test', authenticateToken, async (req, res) => {
 
 app.post('/api/auth/register', async (req, res) => {
     try {
-        const { name, username, password } = req.body;
+        const name = String(req.body.name || '').trim();
+        const username = String(req.body.username || '').trim();
+        const password = String(req.body.password || '').trim();
         if (!name || !username || !password) return res.status(400).json({ error: 'Заполните все поля' });
 
         const existingUser = await pool.query('SELECT id FROM users WHERE username = $1', [username]);

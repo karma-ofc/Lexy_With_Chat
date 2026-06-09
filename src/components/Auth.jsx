@@ -340,7 +340,11 @@ export default function Auth({ onAuthSuccess, onShowNotification }) {
   const handleRegister = async (event) => {
     event.preventDefault();
 
-    if (!regName || !regUsername || !regPassword) {
+    const trimmedName = String(regName || '').trim();
+    const trimmedUsername = String(regUsername || '').trim();
+    const trimmedPassword = String(regPassword || '').trim();
+
+    if (!trimmedName || !trimmedUsername || !trimmedPassword) {
       showNotification('Заполните все поля', 'error');
       return;
     }
@@ -348,7 +352,7 @@ export default function Auth({ onAuthSuccess, onShowNotification }) {
     setIsLoading(true);
 
     try {
-      const result = await api.register(regName, regUsername, regPassword);
+      const result = await api.register(trimmedName, trimmedUsername, trimmedPassword);
 
       // Сохраняем токен и данные
       localStorage.setItem('lexy_token', result.token);
