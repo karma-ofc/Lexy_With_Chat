@@ -60,6 +60,10 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use(express.static(path.join(__dirname, '..')));
 
+// Request logging (non-intrusive)
+const requestLogger = require('./middleware/logger');
+app.use(requestLogger);
+
 async function syncChatUser(action, user) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
@@ -476,6 +480,14 @@ app.get('/api/dictionary/translate', async (req, res) => {
         return res.status(502).json({ error: 'Ошибка сервиса перевода' });
     }
 });
+
+// Mount grouped routes (scaffolds)
+const routes = require('./routes');
+app.use('/api', routes);
+
+// Error handling middleware (non-intrusive)
+const errorHandler = require('./middleware/errorHandler');
+app.use(errorHandler);
 
 app.post('/api/notifications/subscribe', authenticateToken, async (req, res) => {
     try {
