@@ -173,8 +173,7 @@ export default function Library({ onShowNotification, onStartStudy }) {
             window.saveState?.();
             if (typeof window.refreshMyDecks === 'function') window.refreshMyDecks();
             if (typeof window.refreshLibrary === 'function') window.refreshLibrary();
-
-            showNotification(existingIdx >= 0 ? 'Колода уже в Моих колодах (данные обновлены)' : 'Колода добавлена в Мои колодах');
+            showNotification(existingIdx >= 0 ? 'Колода уже в Моих колодах (данные обновлены)' : 'Колода добавлена в Мои колоды');
             return;
           }
         } catch (e) {
@@ -271,8 +270,7 @@ export default function Library({ onShowNotification, onStartStudy }) {
           window.saveState?.();
           if (typeof window.refreshMyDecks === 'function') window.refreshMyDecks();
           if (typeof window.refreshLibrary === 'function') window.refreshLibrary();
-
-          showNotification(existingIdx >= 0 ? 'Колода уже в Моих колодах (данные обновлены)' : 'Колода добавлена в Мои колодах');
+          showNotification(existingIdx >= 0 ? 'Колода уже в Моих колодах (данные обновлены)' : 'Колода добавлена в Мои колоды');
           return;
         }
       } catch (e) {
