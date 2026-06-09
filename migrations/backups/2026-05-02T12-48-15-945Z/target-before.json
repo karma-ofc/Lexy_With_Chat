@@ -1,0 +1,11 @@
+{
+  "label": "target-before",
+  "createdAt": "2026-05-02T12:48:16.608Z",
+  "tables": {
+    "roles": [],
+    "users": [],
+    "chat_groups": [],
+    "chat_group_members": [],
+    "chat_messages": []
+  }
+}
