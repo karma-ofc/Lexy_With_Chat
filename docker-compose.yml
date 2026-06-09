@@ -41,17 +41,18 @@ services:
       context: .
       dockerfile: Dockerfile
     command: ["node", "server/server.js"]
-    env_file:
-      - ./server/.env
-      - ./chat-server/.env
     environment:
-      PORT: 3000
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: admin
-      DB_NAME: lexy
-      CHAT_API_URL: http://chat-server:3001
+      PORT: ${MAIN_PORT:-3000}
+      DB_HOST: ${DB_HOST:-postgres}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-admin}
+      DB_NAME: ${MAIN_DB_NAME:-lexy}
+      CHAT_API_URL: ${MAIN_CHAT_API_URL:-http://chat-server:3001}
+      JWT_SECRET: ${JWT_SECRET:-2026}
+      YANDEX_DICT_API_KEY: ${YANDEX_DICT_API_KEY:-}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-BCGYOSd3_aY2jVM4OVhEYz6iPHYqsMuBwtUw29Zc-aXF4bT2Qii6PZy8T8gkPmFlKYVxwvSGicRJ0d3vEnmJNuc}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-C0-VtuiKEba2LHtMJ1Qi26EFvmY9gp4bh0SD8FhcuSM}
     depends_on:
       postgres:
         condition: service_healthy
@@ -65,16 +66,15 @@ services:
       context: .
       dockerfile: Dockerfile
     command: ["node", "server/server_chat.js"]
-    env_file:
-      - ./chat-server/.env
-      - ./server/.env
     environment:
-      PORT: 3001
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: admin
-      DB_NAME: chat
+      PORT: ${CHAT_PORT:-3001}
+      DB_HOST: ${DB_HOST:-postgres}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-admin}
+      DB_NAME: ${CHAT_DB_NAME:-chat}
+      JWT_SECRET: ${JWT_SECRET:-2026}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-0123456789abcdef0123456789abcdef}
     depends_on:
       postgres:
         condition: service_healthy
