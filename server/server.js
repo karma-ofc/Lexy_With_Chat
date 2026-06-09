@@ -113,7 +113,18 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'index.html'));
 });
 
-const { pool } = require('./db');
+const pool = new Pool({
+    user: process.env.DB_USER || 'postgres',
+    host: process.env.DB_HOST || 'localhost',
+    database: process.env.DB_NAME || 'lexy',
+    password: process.env.DB_PASSWORD || 'postgres',
+    port: process.env.DB_PORT || 5432,
+    ssl: false
+});
+
+pool.on('error', (err, client) => {
+    console.error('Unexpected error on idle client', err);
+});
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const YANDEX_DICT_API_KEY = process.env.YANDEX_DICT_API_KEY || '';
@@ -297,7 +308,22 @@ async function initDatabase() {
 
 initDatabase();
 
-const { authenticateToken } = require('./middleware/auth');
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ error: 'Требуется авторизация' });
+    }
+
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) {
+            return res.status(403).json({ error: 'Неверный токен' });
+        }
+        req.user = user;
+        next();
+    });
+};
 
 // Ensure that when a user modifies a public library deck, they operate on a private copy.
 // If the user's mapping points to a deck that is the canonical public deck, this function
