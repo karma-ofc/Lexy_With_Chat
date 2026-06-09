@@ -1,0 +1,42 @@
+node_modules/
+dist/
+build/
+.env
+.env.local
+.DS_Store
+coverage/
+*.log
+# Environment variables
+.env
+.env.local
+.env.*.local
+*.env
+*/.env
+
+# Dependencies
+node_modules/
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Sensitive files
+auth_dump.txt
+token.txt
+
+# Editor files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS files
+.DS_Store
+Thumbs.db
