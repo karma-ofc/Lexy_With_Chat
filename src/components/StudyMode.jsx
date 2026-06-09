@@ -1,13 +1,3 @@
-import React from 'react';
-
-export default function StudyMode() {
-  return (
-    <div>
-      <h2>Study Mode (placeholder)</h2>
-      <p>Card viewer and spaced repetition UI placeholder.</p>
-    </div>
-  );
-}
 import React, { useState, useEffect, useCallback } from 'react';
 
 export default function StudyMode({ deck, onClose, onShowNotification, onToggleFavorite }) {
