@@ -10,12 +10,6 @@
     "build": "vite build",
     "preview": "vite preview"
   },
-  "description": "Lexy with Chat - language learning app",
-  "keywords": ["lexy","chat","flashcards","language"],
-  "scripts-extra": {
-    "test": "echo \"No tests yet. Add tests in /tests and update package.json accordingly.\"",
-    "lint": "echo \"No linter configured. Add ESLint config to enable linting.\""
-  },
   "dependencies": {
     "react": "^19.2.5",
     "react-dom": "^19.2.5",

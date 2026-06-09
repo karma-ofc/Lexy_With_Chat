@@ -1,13 +1,4 @@
 node_modules
-dist
-build
-npm-debug.log
-.env
-Dockerfile
-Dockerfile.frontend
-*.pem
-.DS_Store
-node_modules
 **/node_modules
 dist
 build
