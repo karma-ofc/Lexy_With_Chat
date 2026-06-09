@@ -93,6 +93,15 @@ export default function Library({ onShowNotification, onStartStudy }) {
       setUser(userData);
       if (!loadingRef.current) loadPublicDecksFromServer();
     };
+
+    window.refreshLibrary = () => {
+      if (!loadingRef.current) {
+        const userStr = localStorage.getItem('lexy_user');
+        const userData = userStr ? JSON.parse(userStr) : null;
+        setUser(userData);
+        loadPublicDecksFromServer();
+      }
+    };
   }, [loadPublicDecksFromServer]);
 
   const getAdminButtons = (deck) => {
@@ -120,6 +129,7 @@ export default function Library({ onShowNotification, onStartStudy }) {
   };
 
   const handleAddPublicDeck = async (deckId) => {
+    const isAuthenticated = Boolean(localStorage.getItem('lexy_token') && localStorage.getItem('lexy_user'));
     const numericDeckId = Number(deckId);
     const deck = publicDecks.find(d => d.id == deckId || d.id === numericDeckId);
     if (!deck) {
@@ -127,8 +137,8 @@ export default function Library({ onShowNotification, onStartStudy }) {
       const staticDeck = window.AppState?.publicDecks?.find(d => d.id == deckId || d.id === numericDeckId);
       if (!staticDeck) return;
 
-      // For registered users trust server state, not stale local cache
-      if (window.AppState?.user?.isRegistered) {
+      // For authenticated users trust server state, not stale local cache
+      if (isAuthenticated) {
         try {
           const result = await api.addPublicDeck(staticDeck.id);
           if (result && result.deck) {
@@ -161,6 +171,8 @@ export default function Library({ onShowNotification, onStartStudy }) {
             if (existingIdx >= 0) window.AppState.userDecks[existingIdx] = clientDeck;
             else window.AppState.userDecks.push(clientDeck);
             window.saveState?.();
+            if (typeof window.refreshMyDecks === 'function') window.refreshMyDecks();
+            if (typeof window.refreshLibrary === 'function') window.refreshLibrary();
 
             showNotification(existingIdx >= 0 ? 'Колода уже в Моих колодах (данные обновлены)' : 'Колода добавлена в Мои колоды');
             return;
@@ -223,8 +235,8 @@ export default function Library({ onShowNotification, onStartStudy }) {
       return;
     }
     
-    // If user is registered, attach existing public deck on server (no duplication)
-    if (window.AppState?.user?.isRegistered) {
+    // If user is authenticated, attach existing public deck on server (no duplication)
+    if (isAuthenticated) {
       try {
         const result = await api.addPublicDeck(deck.id);
         if (result && result.deck) {
@@ -257,6 +269,9 @@ export default function Library({ onShowNotification, onStartStudy }) {
           if (existingIdx >= 0) window.AppState.userDecks[existingIdx] = clientDeck;
           else window.AppState.userDecks.push(clientDeck);
           window.saveState?.();
+          if (typeof window.refreshMyDecks === 'function') window.refreshMyDecks();
+          if (typeof window.refreshLibrary === 'function') window.refreshLibrary();
+
           showNotification(existingIdx >= 0 ? 'Колода уже в Моих колодах (данные обновлены)' : 'Колода добавлена в Мои колоды');
           return;
         }
