@@ -1,13 +1,3 @@
-import React from 'react';
-
-export default function Auth() {
-  return (
-    <div>
-      <h2>Auth Component (placeholder)</h2>
-      <p>Login / Register UI lives here.</p>
-    </div>
-  );
-}
 import React, { useState, useEffect } from 'react';
 import { api } from '../api';
 
