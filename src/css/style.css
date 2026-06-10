@@ -1392,6 +1392,20 @@ h2 {
     background: transparent;
 }
 
+.icon {
+    display: inline-flex;
+    width: 1em;
+    height: 1em;
+    align-items: center;
+    justify-content: center;
+    vertical-align: text-bottom;
+}
+
+.icon svg {
+    width: 1em;
+    height: 1em;
+}
+
 /* Модальные окна */
 .modal-overlay {
     position: fixed;

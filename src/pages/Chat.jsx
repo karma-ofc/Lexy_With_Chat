@@ -1181,7 +1181,7 @@ export default function Chat({ currentUser, socket, onShowNotification, onUnread
                                   onClick={() => handleEditMessage(message.id)}
                                   title="Редактировать"
                                 >
-                                  ✏️
+                                  <Icon name="edit" />
                                 </button>
                               )}
                               <button
@@ -1190,7 +1190,7 @@ export default function Chat({ currentUser, socket, onShowNotification, onUnread
                                 onClick={() => setDeleteModalMessageId(message.id)}
                                 title="Удалить"
                               >
-                                🗑️
+                                <Icon name="trash" />
                               </button>
                             </div>
                           )}
@@ -1199,8 +1199,8 @@ export default function Chat({ currentUser, socket, onShowNotification, onUnread
                             className={`chat-message-status ${messageStatus === 'прочитано' ? 'is-read' : 'is-delivered'}`}
                             title={messageStatus === 'прочитано' ? 'Прочитано' : 'Доставлено'}
                           >
-                            <span>✓</span>
-                            <span>✓</span>
+                            <span><Icon name="check" /></span>
+                            <span><Icon name="check" /></span>
                           </span>
                         </div>
                       )}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSwipeable } from 'react-swipeable';
 import { api } from '../api';
+import { Icon } from '../components/Icons';
 
 export default function MyDecks({ onShowNotification }) {
   const [createdDecks, setCreatedDecks] = useState([]);
@@ -487,7 +488,7 @@ export default function MyDecks({ onShowNotification }) {
   const showCompletionModal = () => {
     const sessionTime = studyStartTime ? Math.floor((Date.now() - studyStartTime) / 1000) : 0;
     
-    alert(`Поздравляем! Вы успешно решили все карты! 🎉\nИзучено карточек: ${cardsStudied}\nВремя: ${Math.floor(sessionTime / 60)} мин ${sessionTime % 60} сек`);
+    alert(`Поздравляем! Вы успешно решили все карты!\nИзучено карточек: ${cardsStudied}\nВремя: ${Math.floor(sessionTime / 60)} мин ${sessionTime % 60} сек`);
     
     setStudyMode(null);
     setStudyCards([]);
@@ -589,7 +590,7 @@ export default function MyDecks({ onShowNotification }) {
                 {selectedImage ? (
                   <img src={selectedImage} alt="Обложка" style={{ maxWidth: '100%', maxHeight: '100px', objectFit: 'cover' }} />
                 ) : (
-                  <div><div style={{ fontSize: '24px', marginBottom: '8px' }}>🖼️</div><div>Нажмите для загрузки</div></div>
+                  <div><div style={{ fontSize: '24px', marginBottom: '8px' }}><Icon name="image" /></div><div>Нажмите для загрузки</div></div>
                 )}
               </div>
               <input type="file" id="deckImageInput" accept="image/*" style={{ display: 'none' }}
@@ -610,9 +611,9 @@ export default function MyDecks({ onShowNotification }) {
                 onDragLeave={(e) => { e.preventDefault(); setDropZoneActive(false); }}
                 onDrop={(e) => { e.preventDefault(); setDropZoneActive(false); const files = e.dataTransfer.files; if (files.length > 0) handleFileSelect(files[0]); }}>
                 {selectedFile ? (
-                  <div style={{ color: 'var(--success)' }}><div style={{ fontSize: '24px', marginBottom: '8px' }}>✓</div><div>{selectedFile.name}</div></div>
+                  <div style={{ color: 'var(--success)' }}><div style={{ fontSize: '24px', marginBottom: '8px' }}><Icon name="check" /></div><div>{selectedFile.name}</div></div>
                 ) : (
-                  <div><div style={{ fontSize: '24px', marginBottom: '8px' }}>📁</div><div>Перетащите файл сюда</div>
+                  <div><div style={{ fontSize: '24px', marginBottom: '8px' }}><Icon name="folder" /></div><div>Перетащите файл сюда</div>
                     <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>или нажмите для выбора .json файла</div></div>
                 )}
               </div>
@@ -730,8 +731,8 @@ export default function MyDecks({ onShowNotification }) {
                     <form onSubmit={handleEditSubmit} style={{ flex: 1, display: 'flex', gap: '10px' }}>
                       <input type="text" value={editFront} onChange={e => setEditFront(e.target.value)} style={{ flex: 1 }} />
                       <input type="text" value={editBack} onChange={e => setEditBack(e.target.value)} style={{ flex: 1 }} />
-                      <button type="submit" className="btn-small">💾</button>
-                      <button type="button" className="btn-small" onClick={() => setEditingCard(null)}>✖</button>
+                      <button type="submit" className="btn-small" aria-label="Сохранить"><Icon name="save" /></button>
+                      <button type="button" className="btn-small" onClick={() => setEditingCard(null)} aria-label="Отменить"><Icon name="close" /></button>
                     </form>
                   ) : (
                     <>
@@ -869,7 +870,7 @@ export default function MyDecks({ onShowNotification }) {
           {showImageEditor && (
             <div style={{ marginTop: '20px', borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
               <div className="deck-image-upload" onClick={() => document.getElementById('menuImageInput').click()} style={{ border: '2px dashed var(--border)', borderRadius: '8px', padding: '20px', textAlign: 'center', cursor: 'pointer' }}>
-                {selectedImage ? <img src={selectedImage} alt="Обложка" style={{ maxWidth: '100%', maxHeight: '100px' }} /> : <div><div>🖼️</div><div>Нажмите для загрузки</div></div>}
+                {selectedImage ? <img src={selectedImage} alt="Обложка" style={{ maxWidth: '100%', maxHeight: '100px' }} /> : <div><div><Icon name="image" /></div><div>Нажмите для загрузки</div></div>}
               </div>
               <input type="file" id="menuImageInput" accept="image/*" style={{ display: 'none' }} onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0])} />
               <button className="btn" onClick={handleSaveImage} style={{ marginTop: '10px' }}>Сохранить</button>
@@ -1112,7 +1113,7 @@ export default function MyDecks({ onShowNotification }) {
 
           <div className="deck-card" id="forgottenDeck" onClick={() => handleOpenDeck({ id: 'forgotten', name: 'Забытые карты' })}>
             <div className="deck-preview" style={{ background: "linear-gradient(135deg, #8e8e93, #636366)" }}>
-              <div className="deck-actions"><button className="btn-icon">📌</button></div>
+              <div className="deck-actions"><button className="btn-icon" aria-label="Закрепить"><Icon name="pin" /></button></div>
             </div>
             <div className="deck-info">
               <div className="deck-name">Забытые карты</div>

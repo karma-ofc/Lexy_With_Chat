@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Icon } from '../components/Icons';
 
 // Демо карточки для быстрого теста
 const demoQuickCards = [
@@ -219,9 +220,9 @@ export default function Home({ onShowAuth, onLoadPage, onStartStudy, onAddDemoDe
               onClick={() => handleStartDemoDeck(deck.id)}
             >
               <div className="demo-deck-icon">
-                {deck.id === 'demo_basic' && '🇬🇧'}
-                {deck.id === 'demo_travel' && '✈️'}
-                {deck.id === 'demo_food' && '🍕'}
+                {deck.id === 'demo_basic' && <Icon name="flagGb" />}
+                {deck.id === 'demo_travel' && <Icon name="plane" />}
+                {deck.id === 'demo_food' && <Icon name="pizza" />}
               </div>
               <h3>{deck.name}</h3>
               <p>({deck.cards.length} карточек)</p>

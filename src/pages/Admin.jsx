@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../api';
+import { Icon } from '../components/Icons';
 
 export default function Admin({ onShowNotification, onNavigate }) {
   const [users, setUsers] = useState([]);
@@ -563,21 +564,21 @@ export default function Admin({ onShowNotification, onNavigate }) {
                 <label className="category-btn">
                   <input type="checkbox" checked={deckCategories.new} onChange={(e) => setDeckCategories(prev => ({ ...prev, new: e.target.checked }))} />
                   <span className="category-btn-content">
-                    <span className="category-icon">✨</span>
+                    <span className="category-icon"><Icon name="sparkle" /></span>
                     <span>Новые</span>
                   </span>
                 </label>
                 <label className="category-btn">
                   <input type="checkbox" checked={deckCategories.popular} onChange={(e) => setDeckCategories(prev => ({ ...prev, popular: e.target.checked }))} />
                   <span className="category-btn-content">
-                    <span className="category-icon">🔥</span>
+                    <span className="category-icon"><Icon name="flame" /></span>
                     <span>Популярные</span>
                   </span>
                 </label>
                 <label className="category-btn">
                   <input type="checkbox" checked={deckCategories.recommended} onChange={(e) => setDeckCategories(prev => ({ ...prev, recommended: e.target.checked }))} />
                   <span className="category-btn-content">
-                    <span className="category-icon">⭐</span>
+                    <span className="category-icon"><Icon name="star" /></span>
                     <span>Рекомендуемые</span>
                   </span>
                 </label>
@@ -591,7 +592,7 @@ export default function Admin({ onShowNotification, onNavigate }) {
                     <img src={selectedImageString} alt="Обложка" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
                     <div className="deck-image-placeholder">
-                      <span className="deck-image-icon">🖼️</span>
+                      <span className="deck-image-icon"><Icon name="image" /></span>
                       <span className="deck-image-text">Нажмите для загрузки</span>
                     </div>
                   )}
