@@ -9,7 +9,7 @@ require('dotenv').config();
     port: process.env.DB_PORT || 5432
   });
   try{
-    // Ensure admin role exists
+    // Убедиться, что роль администратора существует
     const r = await pool.query("SELECT id FROM roles WHERE name='admin'");
     let adminRoleId;
     if (r.rows.length === 0) {
@@ -18,7 +18,7 @@ require('dotenv').config();
     } else {
       adminRoleId = r.rows[0].id;
     }
-    // Update admin user
+    // Обновить пользователя администратора
     const u = await pool.query("UPDATE users SET role_id=$1 WHERE username='admin' RETURNING id, username, role_id", [adminRoleId]);
     console.log('Updated:', u.rows);
   }catch(e){

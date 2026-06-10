@@ -30,12 +30,12 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
-// For development, force HTTP server
+// Для разработки используем HTTP сервер
 const server = http.createServer(app);
 console.log('Chat Server работает в режиме HTTP для разработки.');
 const io = new Server(server, {
     cors: {
-        origin: true, // Разрешить все origins
+        origin: true, // Разрешить все источники
         methods: ["GET", "POST"],
         credentials: true
     }
@@ -44,7 +44,7 @@ const io = new Server(server, {
 const PORT = process.env.PORT || 3001;
 
 app.use(cors({
-    origin: true, // Разрешить все origins
+    origin: true, // Разрешить все источники
     credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -144,7 +144,7 @@ async function upsertSyncedUser(user) {
     const existingUser = await pool.query('SELECT password FROM users WHERE id = $1', [userId]);
     let resolvedPassword = password || existingUser.rows[0]?.password || '';
     if (!resolvedPassword) {
-        // generate a placeholder hash so the NOT NULL password column can be satisfied
+        // сгенерировать заглушечный хэш, чтобы удовлетворить NOT NULL для пароля
         try {
             resolvedPassword = await bcrypt.hash(Math.random().toString(36).slice(2), 10);
         } catch (e) {
@@ -342,7 +342,7 @@ async function initDatabase() {
         try { await pool.query('ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS group_id INTEGER'); } catch (e) {}
         try { await pool.query('ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS reply_to_message_id INTEGER'); } catch (e) {}
 
-        // Migrate old denormalized participants array into relation table.
+        // Мигрировать устаревший денормализованный массив участников в реляционную таблицу.
         try {
             await pool.query(`
                 INSERT INTO chat_group_members (group_id, user_id)
@@ -353,7 +353,7 @@ async function initDatabase() {
             `);
         } catch (e) {}
 
-        // Backfill reply_to_message_id from old reply_to JSON payload.
+        // Заполнить reply_to_message_id из старого JSON-поля reply_to.
         try {
             await pool.query(`
                 UPDATE chat_messages
@@ -388,7 +388,7 @@ async function initDatabase() {
     }
 }
 
-// Initialize database and run auto-migration on startup
+// Инициализировать базу и выполнить авто-миграцию при запуске
 (async () => {
     try {
         console.log('[Startup] Running automatic chat data migration if needed...');
@@ -550,7 +550,7 @@ app.put('/api/auth/profile', authenticateToken, async (req, res) => {
         );
         const u = result.rows[0];
 
-        // If the user has disabled notifications, remove push subscriptions and unregister socket
+        // Если пользователь отключил уведомления, удалить подписки push и отменить регистрацию сокета
         if (notifications_enabled === false) {
             try {
                 await pool.query('DELETE FROM push_subscriptions WHERE user_id = $1', [req.user.id]);
@@ -565,7 +565,7 @@ app.put('/api/auth/profile', authenticateToken, async (req, res) => {
                     const sock = io.sockets.sockets.get(sid);
                     if (sock) sock.disconnect(true);
                 } catch (e) {
-                    // ignore
+                    // игнорировать
                 }
             }
         }
@@ -738,7 +738,7 @@ app.post('/chat-api/messages', authenticateToken, async (req, res) => {
             ? Number(reply_to.id)
             : null;
 
-        // Pre-insert: ensure sender and recipient exist in chat DB; attempt on-demand sync if missing
+        // Перед вставкой: убедиться, что отправитель и получатель существуют в чате; при необходимости синхронизировать по требованию
         try {
             const senderCheck = await pool.query('SELECT id FROM users WHERE id = $1', [req.user.id]);
             if (senderCheck.rows.length === 0) {
@@ -752,7 +752,7 @@ app.post('/chat-api/messages', authenticateToken, async (req, res) => {
                 }
             }
 
-            // Now insert message
+            // Теперь вставить сообщение
             const insertResult = await pool.query(`
                 INSERT INTO chat_messages (sender_id, recipient_id, group_id, message_type, text, photo, deck, reply_to_message_id, created_at)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
@@ -761,10 +761,10 @@ app.post('/chat-api/messages', authenticateToken, async (req, res) => {
             message = insertResult;
         } catch (err) {
             console.error('Send message insert error:', err.message || err);
-            // If FK error still occurs, try one retry (race conditions)
+            // Если ошибка FK всё ещё возникает, выполнить ещё одну попытку (гонки)
             if (err && err.code === '23503') {
                 try {
-                    // attempt to ensure users again
+                    // попытаться снова убедиться, что пользователи существуют
                     await fetchAndUpsertUserFromSource(req.user.id).catch(() => null);
                     if (recipientId) await fetchAndUpsertUserFromSource(recipientId).catch(() => null);
 
@@ -1050,7 +1050,7 @@ app.put('/chat-api/messages/:messageId', authenticateToken, async (req, res) => 
         const result = await pool.query('UPDATE chat_messages SET text = $1 WHERE id = $2 AND sender_id = $3 RETURNING *', [text, messageId, req.user.id]);
         if (result.rows.length === 0) return res.status(404).json({ error: 'Сообщение не найдено' });
 
-        // Notify both participants
+        // Уведомить обоих участников
         const message = result.rows[0];
         const participants = [message.sender_id, message.recipient_id];
         participants.forEach(pid => {
@@ -1073,7 +1073,7 @@ app.delete('/chat-api/messages/:messageId', authenticateToken, async (req, res) 
         if (deleteFor === 'all') {
             await pool.query('DELETE FROM chat_messages WHERE id = $1 AND sender_id = $2', [messageId, req.user.id]);
         } else {
-            // For self, mark as deleted for sender
+            // Для себя пометить как удалённое от отправителя
             await pool.query('UPDATE chat_messages SET deleted_for_sender = true WHERE id = $1 AND sender_id = $2', [messageId, req.user.id]);
         }
 
@@ -1101,10 +1101,10 @@ io.on('connection', (socket) => {
     socket.on('register', async (userId) => {
         try {
             console.log('Registering user', userId, 'socket', socket.id);
-            // Check if user has disabled notifications
+            // Проверить, отключил ли пользователь уведомления
             const pref = await pool.query('SELECT notifications_enabled FROM users WHERE id = $1', [userId]);
             if (pref.rows.length > 0 && pref.rows[0].notifications_enabled === false) {
-                // Do not register socket or send notifications
+                // Не регистрировать сокет и не отправлять уведомления
                 return;
             }
 
@@ -1118,12 +1118,12 @@ io.on('connection', (socket) => {
     socket.on('chat:mark_read', async (data) => {
         try {
             const { participantId } = data;
-            const userId = socket.userId; // Need to set userId on socket
+            const userId = socket.userId; // Необходимо установить userId в сокете
 
-            // Mark as read in DB
+            // Отметить как прочитанное в БД
             await pool.query('UPDATE chat_messages SET read_at = NOW() WHERE recipient_id = $1 AND sender_id = $2 AND read_at IS NULL', [userId, participantId]);
 
-            // Notify sender that messages are read
+            // Уведомить отправителя о прочтении сообщений
             const senderSocketId = connectedUsers.get(participantId);
             if (senderSocketId) {
                 io.to(senderSocketId).emit('chat:read_confirmed', { participantId: userId });
@@ -1139,7 +1139,7 @@ io.on('connection', (socket) => {
 
         console.log('Server received typing from', senderId, 'to', participantId);
 
-        // Broadcast to the participant
+        // Распространить событие участнику
         const recipientSocketId = connectedUsers.get(participantId);
         if (recipientSocketId) {
             io.to(recipientSocketId).emit('chat:typing', { userId: senderId });

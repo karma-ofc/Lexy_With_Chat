@@ -98,7 +98,7 @@ function buildMessageRow(row) {
   const payload = decryptPayload(row) || {};
   let replyTo = payload.reply_to || null;
 
-  // Fallback for older payloads: rebuild reply preview from linked message row.
+  // Запасной путь для старых данных: восстановить превью ответа из связанной строки сообщения.
   if (!replyTo && row.reply_to_message_id) {
     const replyPayload = decryptPayload({
       encrypted_payload: row.reply_encrypted_payload,
@@ -190,7 +190,7 @@ async function initDb() {
     )
   `);
 
-  // Add foreign key constraint to chat_groups.creator_id if it doesn't exist
+  // Добавить внешний ключ для chat_groups.creator_id, если он отсутствует
   await pool.query(`
     DO $$
     BEGIN
@@ -200,7 +200,7 @@ async function initDb() {
     END$$;
   `);
 
-  // Add foreign key constraint to chat_group_members.user_id if it doesn't exist
+  // Добавить внешний ключ для chat_group_members.user_id, если он отсутствует
   await pool.query(`
     DO $$
     BEGIN
@@ -214,7 +214,7 @@ async function initDb() {
   await pool.query("ALTER TABLE chat_messages ALTER COLUMN recipient_id DROP NOT NULL");
   await pool.query("ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS group_id INTEGER NULL REFERENCES chat_groups(id)");
 
-  // Add CHECK constraint only if it does not exist (pg_constraint lookup)
+  // Добавить CHECK-ограничение только если оно отсутствует (поиск в pg_constraint)
   await pool.query(`
     DO $$
     BEGIN
@@ -233,12 +233,12 @@ async function initDb() {
   await pool.query('CREATE INDEX IF NOT EXISTS idx_chat_group_members_group_user ON chat_group_members (group_id, user_id)');
   await pool.query('CREATE INDEX IF NOT EXISTS idx_chat_group_members_user ON chat_group_members (user_id)');
 
-  // Ensure encryption columns exist for new message format
+  // Убедиться, что столбцы шифрования существуют для нового формата сообщений
   await pool.query("ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS encrypted_payload TEXT");
   await pool.query("ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS iv TEXT");
   await pool.query("ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS auth_tag TEXT");
 
-  // Migrate participants to chat_group_members if not already done
+  // Мигрировать участников в chat_group_members, если это ещё не сделано
   const migrationCheck = await pool.query('SELECT COUNT(*) FROM chat_group_members');
   if (parseInt(migrationCheck.rows[0].count) === 0) {
     const groups = await pool.query('SELECT id, participants FROM chat_groups WHERE participants IS NOT NULL');
@@ -249,11 +249,11 @@ async function initDb() {
     }
   }
 
-  // Drop participants column if exists
+  // Удалить столбец participants, если он существует
   try {
     await pool.query('ALTER TABLE chat_groups DROP COLUMN IF EXISTS participants');
   } catch (error) {
-    // Column may not exist or already dropped
+    // Столбец может не существовать или уже быть удалён
   }
 }
 
@@ -377,7 +377,7 @@ app.get('/chat-api/messages/group/:groupId', authenticateToken, async (req, res)
       return res.status(400).json({ error: 'Неверная группа' });
     }
 
-    // Check if user is in group
+    // Проверить, состоит ли пользователь в группе
     const groupResult = await pool.query(
       'SELECT g.* FROM chat_groups g JOIN chat_group_members gm ON g.id = gm.group_id WHERE g.id = $1 AND gm.user_id = $2',
       [groupId, req.user.id]
@@ -567,7 +567,7 @@ app.put('/chat-api/messages/:messageId', authenticateToken, async (req, res) => 
       return res.status(400).json({ error: 'Неверное сообщение или текст' });
     }
 
-    // Fetch message to verify ownership
+    // Получить сообщение для проверки прав собственности
     const msgResult = await pool.query(
       'SELECT * FROM chat_messages WHERE id = $1',
       [messageId]
@@ -652,7 +652,7 @@ app.post('/chat-api/groups/:groupId/participants', authenticateToken, async (req
       return res.status(400).json({ error: 'Неверные параметры' });
     }
 
-    // Check if user is in group
+    // Проверить, состоит ли пользователь в группе
     const groupResult = await pool.query(
       'SELECT g.* FROM chat_groups g JOIN chat_group_members gm ON g.id = gm.group_id WHERE g.id = $1 AND gm.user_id = $2',
       [groupId, req.user.id]
@@ -662,13 +662,13 @@ app.post('/chat-api/groups/:groupId/participants', authenticateToken, async (req
       return res.status(403).json({ error: 'Нет доступа к группе' });
     }
 
-    // Check participant count
+    // Проверить количество участников
     const countResult = await pool.query('SELECT COUNT(*) FROM chat_group_members WHERE group_id = $1', [groupId]);
     if (parseInt(countResult.rows[0].count) >= 10) {
       return res.status(400).json({ error: 'Группа уже имеет максимум участников' });
     }
 
-    // Check if participant already in group
+    // Проверить, уже ли участник состоит в группе
     const existsResult = await pool.query('SELECT 1 FROM chat_group_members WHERE group_id = $1 AND user_id = $2', [groupId, participantId]);
     if (existsResult.rows.length > 0) {
       return res.status(400).json({ error: 'Пользователь уже в группе' });
@@ -697,7 +697,7 @@ app.delete('/chat-api/messages/:messageId', authenticateToken, async (req, res) 
       return res.status(400).json({ error: 'Неверное сообщение' });
     }
 
-    // Fetch message to verify ownership
+    // Получить сообщение для проверки прав собственности
     const msgResult = await pool.query(
       'SELECT * FROM chat_messages WHERE id = $1',
       [messageId]
@@ -713,15 +713,15 @@ app.delete('/chat-api/messages/:messageId', authenticateToken, async (req, res) 
     }
 
     if (deleteFor === 'all') {
-      // Delete for everyone
+      // Удалить для всех
       await pool.query(
         'DELETE FROM chat_messages WHERE id = $1',
         [messageId]
       );
       io.emit('chat:message_deleted', { messageId });
     } else {
-      // Delete for self (client-side only for now - just return success)
-      // In a more advanced impl, we'd track deleted_by_sender/recipient
+      // Удаление только для себя (сейчас только на клиенте — просто вернуть успех)
+      // В более продвинутой реализации мы бы вели учёт deleted_by_sender/recipient
       io.emit('chat:message_deleted_self', { messageId, userId: req.user.id });
     }
 

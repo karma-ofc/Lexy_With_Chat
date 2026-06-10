@@ -15,7 +15,7 @@ export default function Stats() {
   const loadStatsFromServer = useCallback(async () => {
     try {
       const stats = await api.getStats();
-      // Update AppState with server data
+      // Обновляем AppState данными сервера
       if (window.AppState) {
         window.AppState.user.streak = stats.streak || 0;
         window.AppState.user.learnedWords = stats.learned_words || 0;
@@ -38,7 +38,7 @@ export default function Stats() {
         console.error('Failed to load activity:', e);
       }
 
-      // Calculate dynamic streak from activity
+      // Рассчитываем текущую серию по активности
       if (window.AppState && window.AppState.user.activity) {
         const act = window.AppState.user.activity;
         let streakCount = 0;
@@ -47,12 +47,12 @@ export default function Stats() {
         const pad = n => String(n).padStart(2, '0');
         const toDateStr = (dObj) => `${dObj.getFullYear()}-${pad(dObj.getMonth()+1)}-${pad(dObj.getDate())}`;
 
-        // Check today first
+        // Сначала проверяем сегодняшнюю дату
         let d = new Date();
         let todayStr = toDateStr(d);
         
         if (!act[todayStr] || act[todayStr] <= 0) {
-            offset = 1; // start from yesterday
+            offset = 1; // начинаем с вчерашнего дня
         }
 
         while (true) {
@@ -71,12 +71,12 @@ export default function Stats() {
         window.AppState.user.streak = streakCount;
       }
 
-      // Update local display
+      // Обновляем локальное отображение
       updateStatsDisplay();
       renderActivityCalendar();
     } catch (error) {
       console.error('Failed to load stats from server:', error);
-      // Fall back to local data
+      // Используем локальные данные при ошибке
       updateStatsDisplay();
     }
   }, []);
@@ -95,7 +95,7 @@ export default function Stats() {
     }
   }, []);
 
-  // Global functions
+  // Глобальные функции
   window.refreshStats = () => {
     loadStatsFromServer();
   };
@@ -176,7 +176,7 @@ export default function Stats() {
     const activity = window.AppState?.user?.activity || {};
     const daySquares = [];
 
-    // GitHub-style: сначала дни недели (строки), потом недели (колонки)
+    // В стиле GitHub: сначала дни недели (строки), потом недели (колонки)
     for (let dayOfWeek = 0; dayOfWeek < daysInWeek; dayOfWeek++) {
       for (let week = 0; week < weeks; week++) {
         const date = new Date(startDate);
@@ -226,7 +226,7 @@ export default function Stats() {
   useEffect(() => {
     loadStatsFromServer();
 
-    // Register global init function
+    // Регистрируем глобальную init-функцию
     window.initStatsPage = () => {
       loadStatsFromServer();
       updateStatsDisplay();

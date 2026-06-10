@@ -340,7 +340,7 @@ app.post('/api/activity', authenticateToken, async (req, res) => {
     }
 });
 
-// Sync data
+// Синхронизировать данные
 app.get('/api/sync', authenticateToken, async (req, res) => {
     try {
         const decksResult = await pool.query(
@@ -363,12 +363,12 @@ app.get('/api/sync', authenticateToken, async (req, res) => {
 
 app.put('/api/sync', authenticateToken, async (req, res) => {
     try {
-        const { decks } = req.body; // Full sync
+        const { decks } = req.body; // Полная синхронизация
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
-            // This logic is complex for sync. For brevity, assuming user syncs only their "created" decks locally.
-            // If they modify public decks, it's not well defined in sync. We will only clear simple created ones.
+            // Эта логика сложная для синхронизации. Для краткости предполагается, что пользователь синхронизует только свои локально созданные колоды.
+            // Если он изменяет публичные колоды, это плохо определено в синхронизации. Мы очистим только простые созданные колоды.
             res.json({ message: 'Синхронизация через put не поддерживается в новом API, используйте POST /api/decks' });
             await client.query('COMMIT');
         } catch (error) {
@@ -382,7 +382,7 @@ app.put('/api/sync', authenticateToken, async (req, res) => {
     }
 });
 
-// DECKS API (Universal)
+// API КОЛОД (универсальное)
 app.get('/api/decks', authenticateToken, async (req, res) => {
     try {
         const result = await pool.query(
@@ -396,7 +396,7 @@ app.get('/api/decks', authenticateToken, async (req, res) => {
     }
 });
 
-// Create Deck - Now creates in 'decks' then links in 'user_decks'
+// Создать колоду — теперь создаём в 'decks' и связываем в 'user_decks'
 app.post('/api/decks', authenticateToken, async (req, res) => {
     const client = await pool.connect();
     try {
@@ -426,8 +426,8 @@ app.post('/api/decks', authenticateToken, async (req, res) => {
 });
 
 app.delete('/api/decks/:id', authenticateToken, async (req, res) => {
-    // Delete user deck. If source=created, should we delete main deck? 
-    // Yes, simple approach.
+    // Удалить пользовательскую колоду. Если source='created', нужно ли удалять основную запись колоды?
+    // Да, простой подход.
     try {
         const ud = await pool.query('SELECT * FROM user_decks WHERE deck_id = $1 AND user_id = $2', [req.params.id, req.user.id]);
         if (ud.rows.length === 0) return res.status(404).json({ error: 'Колода не найдена' });
@@ -446,7 +446,7 @@ app.put('/api/decks/:id', authenticateToken, async (req, res) => {
     try {
         const { name, description, custom_image } = req.body;
         
-        // Ensure user owns this via user_decks
+        // Убедиться, что пользователь владеет этой колодой через user_decks
         const ud = await pool.query('SELECT * FROM user_decks WHERE deck_id = $1 AND user_id = $2', [req.params.id, req.user.id]);
         if (ud.rows.length === 0) return res.status(404).json({ error: 'Доступ запрещён' });
 
@@ -494,7 +494,7 @@ app.get('/api/decks/:id/image', async (req, res) => {
     }
 });
 
-// CARDS API
+// API КАРТОЧЕК
 app.get('/api/decks/:id/cards', authenticateToken, async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM cards WHERE deck_id = $1', [req.params.id]);
@@ -567,7 +567,7 @@ app.delete('/api/cards/:id', authenticateToken, async (req, res) => {
     }
 });
 
-// ADMIN ROUTES
+// МАРШРУТЫ АДМИНА
 app.get('/api/admin/users', authenticateToken, async (req, res) => {
     try {
         if (req.user.role !== 'admin') return res.status(403).json({ error: 'Доступ запрещён' });
@@ -591,7 +591,7 @@ app.put('/api/admin/users/:id/role', authenticateToken, async (req, res) => {
     }
 });
 
-// PUBLIC DECKS ROUTES
+// МАРШРУТЫ ПУБЛИЧНЫХ КОЛОД
 app.get('/api/admin/public-decks', authenticateToken, async (req, res) => {
     try {
         if (req.user.role !== 'admin') return res.status(403).json({ error: 'Доступ запрещён' });
@@ -631,7 +631,7 @@ app.post('/api/admin/public-decks', authenticateToken, async (req, res) => {
 });
 
 app.put('/api/admin/public-decks/:id', authenticateToken, async (req, res) => {
-    // Left simple assuming ID is deck_id for public decks updating
+    // Упрощено: предполагаем, что ID — это deck_id для обновления публичных колод
     try {
         if (req.user.role !== 'admin') return res.status(403).json({ error: 'Доступ запрещён' });
         const { name, description, lang, category, custom_image } = req.body;

@@ -10,7 +10,7 @@ export default function Library({ onShowNotification, onStartStudy }) {
   const [user, setUser] = useState(null);
   const loadingRef = useRef(false);
   
-  // Modal states
+  // Состояния модальных окон
   const [showDeckModal, setShowDeckModal] = useState(false);
   const [showCardsModal, setShowCardsModal] = useState(false);
   const [showPublicDeckModal, setShowPublicDeckModal] = useState(false);
@@ -21,7 +21,7 @@ export default function Library({ onShowNotification, onStartStudy }) {
   const [selectedPublicDeck, setSelectedPublicDeck] = useState(null);
   const [selectedPublicDeckCards, setSelectedPublicDeckCards] = useState([]);
   
-  // Form states
+  // Состояния формы
   const [deckName, setDeckName] = useState('');
   const [deckDescription, setDeckDescription] = useState('');
   const [deckLang, setDeckLang] = useState('Английский');
@@ -55,7 +55,7 @@ export default function Library({ onShowNotification, onStartStudy }) {
       setNewDecks(newDecksFiltered);
     } catch (error) {
       console.error('Error loading public decks:', error);
-      // Используем статические колоды как fallback
+      // Используем статические колоды как запасной вариант
       if (window.AppState?.publicDecks) {
         const staticDecks = window.AppState.publicDecks.map(d => ({
           id: d.id,
@@ -86,7 +86,7 @@ export default function Library({ onShowNotification, onStartStudy }) {
     setUser(userData);
     loadPublicDecksFromServer();
 
-    // Register global init function
+    // Регистрируем глобальную init-функцию
     window.initLibraryPage = () => {
       const userStr = localStorage.getItem('lexy_user');
       const userData = userStr ? JSON.parse(userStr) : null;
@@ -133,11 +133,11 @@ export default function Library({ onShowNotification, onStartStudy }) {
     const numericDeckId = Number(deckId);
     const deck = publicDecks.find(d => d.id == deckId || d.id === numericDeckId);
     if (!deck) {
-      // Try static decks
+      // Пробуем статические колоды
       const staticDeck = window.AppState?.publicDecks?.find(d => d.id == deckId || d.id === numericDeckId);
       if (!staticDeck) return;
 
-      // For authenticated users trust server state, not stale local cache
+      // Для авторизованных пользователей доверяем серверному состоянию, а не устаревшему локальному кэшу
       if (isAuthenticated) {
         try {
           const result = await api.addPublicDeck(staticDeck.id);
@@ -184,7 +184,7 @@ export default function Library({ onShowNotification, onStartStudy }) {
       }
 
       
-      // Check if already added
+      // Проверяем, добавлена ли уже
       const existingDeck = window.AppState?.userDecks?.find(d => d.source === 'public' && d.name === staticDeck.name);
       if (existingDeck) {
         showNotification('Колода уже добавлена', 'error');
@@ -214,7 +214,7 @@ export default function Library({ onShowNotification, onStartStudy }) {
         window.AppState.userDecks = window.AppState.userDecks || [];
         window.AppState.userDecks.push(newDeck);
         
-        // Sync with server immediately if user is registered
+        // Синхронизируем с сервером сразу, если пользователь зарегистрирован
         if (window.AppState.user && window.AppState.user.isRegistered) {
           try {
             const result = await api.createDeck(newDeck.name, '', newDeck.source, newDeck.publicDeckId);
@@ -234,7 +234,7 @@ export default function Library({ onShowNotification, onStartStudy }) {
       return;
     }
     
-    // If user is authenticated, attach existing public deck on server (no duplication)
+    // Если пользователь аутентифицирован, прикрепляем существующую публичную колоду на сервер без дублирования
     if (isAuthenticated) {
       try {
         const result = await api.addPublicDeck(deck.id);
@@ -280,7 +280,7 @@ export default function Library({ onShowNotification, onStartStudy }) {
       }
     }
 
-    // Offline / not-registered fallback
+    // Резервный вариант для офлайн или незарегистрированных пользователей
     const existingDeck = window.AppState?.userDecks?.find(d => d.source === 'public' && d.name === deck.name);
     if (existingDeck) {
       showNotification('Колода уже добавлена', 'error');
@@ -297,7 +297,7 @@ export default function Library({ onShowNotification, onStartStudy }) {
       window.AppState.deckCreateTimes.push(Date.now());
     }
 
-    // Try to load cards from the public deck
+    // Пытаемся загрузить карточки из публичной колоды
     let cards = [];
     try {
       const result = await api.getPublicDeckCards(deckId);

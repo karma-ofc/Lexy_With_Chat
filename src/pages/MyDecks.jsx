@@ -68,7 +68,7 @@ export default function MyDecks({ onShowNotification }) {
     }
   };
 
-  // Global refresh function for Auth component
+  // Глобальная функция обновления для компонента Auth
   window.refreshMyDecks = () => {
     fetchDecks();
     loadPermanentDecks();
@@ -79,7 +79,7 @@ export default function MyDecks({ onShowNotification }) {
     // Загрузка избранных и забытых карт
     loadPermanentDecks();
 
-    // Register global init function
+    // Регистрируем глобальную init-функцию
     window.initMyDecksPage = () => {
       if (!loadingRef.current) fetchDecks();
       if (!permanentLoadingRef.current) loadPermanentDecks();
@@ -268,7 +268,7 @@ export default function MyDecks({ onShowNotification }) {
       if (result.card) {
         card = result.card;
       } else if (result && result.id) {
-        // Handle case where result is the card object directly
+        // Обрабатываем случай, когда результат уже является объектом карточки
         card = result;
       }
 
@@ -276,12 +276,12 @@ export default function MyDecks({ onShowNotification }) {
         console.log('Card created successfully:', card);
         setDeckCards(prev => [...prev, card]);
 
-        // Optimistically update the card count in the correct array
-        // We need to determine if the deck is in createdDecks or addedDecks
+        // Оптимистично обновляем количество карточек в нужном массиве
+        // Нужно определить, находится ли колода в createdDecks или addedDecks
         setCreatedDecks(prev => {
           const deckIndex = prev.findIndex(d => d.id === deckId);
           if (deckIndex !== -1) {
-            // Deck found in createdDecks, update it
+            // Колода найдена в createdDecks, обновляем её
             const updatedDecks = [...prev];
             updatedDecks[deckIndex] = {
               ...updatedDecks[deckIndex],
@@ -289,13 +289,13 @@ export default function MyDecks({ onShowNotification }) {
             };
             return updatedDecks;
           }
-          return prev; // Deck not found in createdDecks
+          return prev; // Колода не найдена в createdDecks
         });
         
         setAddedDecks(prev => {
           const deckIndex = prev.findIndex(d => d.id === deckId);
           if (deckIndex !== -1) {
-            // Deck found in addedDecks, update it
+            // Колода найдена в addedDecks, обновляем её
             const updatedDecks = [...prev];
             updatedDecks[deckIndex] = {
               ...updatedDecks[deckIndex],
@@ -303,19 +303,19 @@ export default function MyDecks({ onShowNotification }) {
             };
             return updatedDecks;
           }
-          return prev; // Deck not found in addedDecks
+          return prev; // Колода не найдена в addedDecks
         });
       } else {
         console.error('Card creation failed, no card returned');
         alert('Карточка не была создана. Попробуйте снова.');
       }
       
-      // Always fetch decks to get authoritative count from server and ensure consistency
+      // Всегда запрашиваем колоды, чтобы получить точное количество с сервера и обеспечить согласованность
       fetchDecks();
     } catch (e) {
       console.error('Error adding card:', e);
       alert('Ошибка добавления карточки: ' + e.message);
-      // Refresh decks to get correct count
+      // Обновляем колоды, чтобы получить правильное количество
       fetchDecks();
     }
   };
@@ -391,16 +391,16 @@ export default function MyDecks({ onShowNotification }) {
 
     setCardsStudied(prev => prev + 1);
 
-    // Update stats
+    // Обновляем статистику
     if (window.AppState?.user) {
       window.AppState.user.learnedWords = (window.AppState.user.learnedWords || 0) + (knew ? 1 : 0);
-      window.AppState.user.studyTime = (window.AppState.user.studyTime || 0) + 1; // Add 1 second
+      window.AppState.user.studyTime = (window.AppState.user.studyTime || 0) + 1; // Добавляем 1 секунду
       window.AppState.user.lastStudyDate = new Date().toISOString().split('T')[0];
       window.saveState?.();
       window.saveStats?.();
     }
 
-    // Record activity
+    // Записываем активность
     const today = new Date().toISOString().split('T')[0];
     if (window.AppState?.user?.activity) {
       window.AppState.user.activity[today] = (window.AppState.user.activity[today] || 0) + 1;
@@ -957,7 +957,7 @@ export default function MyDecks({ onShowNotification }) {
       },
       onSwiping: ({ deltaX }) => {
         if (!isWritten && !autoSwipedRef.current && !isLeaving) {
-          // If swiped far enough, trigger auto-answer without releasing lkm
+          // Если свайп был достаточно большой, запускаем автответ без отпускания левой кнопки мыши
           if (deltaX > 150) {
             autoSwipedRef.current = true;
             handleKnow();

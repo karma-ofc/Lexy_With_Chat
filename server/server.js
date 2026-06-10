@@ -32,12 +32,12 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
-// For development, force HTTP server
+// Для разработки принудительно используем HTTP сервер
 const server = http.createServer(app);
 console.log('Сервер работает в режиме HTTP для разработки.');
 const io = new Server(server, {
     cors: {
-        origin: true, // Разрешить все origins
+        origin: true, // Разрешить все источники
         methods: ["GET", "POST"],
         credentials: true
     }
@@ -52,7 +52,7 @@ const upload = multer({
 });
 
 app.use(cors({
-    origin: true, // Разрешить все origins
+    origin: true, // Разрешить все источники
     credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -254,12 +254,11 @@ async function initDatabase() {
             )
         `);
 
-        // NOTE: chat-specific tables are managed by the chat microservice
-        // and should live in the separate `chat` database. Use migration
-        // scripts in `migrations/` to move data from `lexy` -> `chat`.
+        // ПРИМЕЧАНИЕ: таблицы чата управляются микросервисом чата
+        // и должны храниться в отдельной базе данных `chat`. Используйте миграционные
+        // скрипты в `migrations/` для переноса данных из `lexy` -> `chat`.
 
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS deck_publish_requests (
+        await pool.query(`            CREATE TABLE IF NOT EXISTS deck_publish_requests (
                 id SERIAL PRIMARY KEY,
                 user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
                 deck_id INTEGER REFERENCES decks(id) ON DELETE CASCADE,
@@ -274,15 +273,15 @@ async function initDatabase() {
             )
         `);
 
-        // Ensure compatibility: add missing columns if the existing table was created differently
+        // Обеспечить совместимость: добавить отсутствующие столбцы, если существующая таблица была создана иначе
         try {
             await pool.query("ALTER TABLE deck_publish_requests ADD COLUMN IF NOT EXISTS message TEXT");
             await pool.query("ALTER TABLE deck_publish_requests ADD COLUMN IF NOT EXISTS category VARCHAR(50) DEFAULT ''");
-            // Some DBs use 'reviewed_by' instead of 'admin_id' and may have 'rejection_reason'
+            // Некоторые БД используют 'reviewed_by' вместо 'admin_id' и могут иметь 'rejection_reason'
             await pool.query("ALTER TABLE deck_publish_requests ADD COLUMN IF NOT EXISTS rejection_reason TEXT");
             await pool.query("ALTER TABLE deck_publish_requests ADD COLUMN IF NOT EXISTS reviewed_by INTEGER");
         } catch (e) {
-            // ignore
+            // игнорировать
         }
 
         try {
@@ -325,29 +324,29 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
-// Ensure that when a user modifies a public library deck, they operate on a private copy.
-// If the user's mapping points to a deck that is the canonical public deck, this function
-// creates a new copy of the deck (including cards and image) and updates user_decks to point
-// to the new copy. Returns the deck id that should be used for further modifications.
+// Убедиться, что когда пользователь изменяет публичную библиотечную колоду, он работает с приватной копией.
+// Если сопоставление пользователя указывает на каноническую публичную колоду, эта функция
+// создаёт новую копию колоды (включая карточки и изображение) и обновляет user_decks, чтобы указать
+// на новую копию. Возвращает id колоды, который нужно использовать для дальнейших модификаций.
 async function ensureUserHasWritableDeck(userId, deckId) {
-    // Check mapping exists
+    // Проверить, что сопоставление существует
     const ud = await pool.query('SELECT * FROM user_decks WHERE user_id = $1 AND deck_id = $2', [userId, deckId]);
     if (ud.rows.length === 0) {
         return { ok: false, error: 'not_found' };
     }
 
-    // If this deck is not a public canonical deck, nothing to do
+    // Если эта колода не является публичной канонической, ничего делать не нужно
     const pub = await pool.query('SELECT deck_id FROM public_decks WHERE deck_id = $1', [deckId]);
     if (pub.rows.length === 0) {
         return { ok: true, deckId: Number(deckId), copied: false };
     }
 
-    // Create a copy for this user
+    // Создать копию для этого пользователя
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
 
-        // Read original deck
+        // Прочитать оригинальную колоду
         const dres = await client.query('SELECT name, description, custom_image FROM decks WHERE id = $1', [deckId]);
         if (dres.rows.length === 0) {
             await client.query('ROLLBACK');
@@ -355,11 +354,11 @@ async function ensureUserHasWritableDeck(userId, deckId) {
         }
         const d = dres.rows[0];
 
-        // Insert new deck (no custom_image yet, we'll copy image separately)
+        // Вставить новую колоду (пока без custom_image, его скопируем позже)
         const ins = await client.query('INSERT INTO decks (name, description) VALUES ($1, $2) RETURNING *', [d.name, d.description || '']);
         const newDeck = ins.rows[0];
 
-        // Copy deck image if present
+        // Скопировать изображение колоды, если оно есть
         const img = await client.query('SELECT image_data, mime_type FROM deck_images WHERE deck_id = $1', [deckId]);
         if (img.rows.length > 0) {
             await client.query('INSERT INTO deck_images (deck_id, image_data, mime_type) VALUES ($1, $2, $3)', [newDeck.id, img.rows[0].image_data, img.rows[0].mime_type]);
@@ -371,7 +370,7 @@ async function ensureUserHasWritableDeck(userId, deckId) {
             newDeck.custom_image = d.custom_image;
         }
 
-        // Copy cards and capture mapping old->new ids
+        // Скопировать карточки и сохранить сопоставление старых->новых id
         const cards = await client.query('SELECT id, front, back, is_favorite, is_forgotten FROM cards WHERE deck_id = $1 ORDER BY created_at ASC', [deckId]);
         const mapping = [];
         for (const c of cards.rows) {
@@ -379,7 +378,7 @@ async function ensureUserHasWritableDeck(userId, deckId) {
             mapping.push({ old: c.id, new: r.rows[0].id });
         }
 
-        // Update mapping to point to new deck id
+        // Обновить сопоставление, чтобы оно указывало на новый id колоды
         await client.query('UPDATE user_decks SET deck_id = $1 WHERE id = $2', [newDeck.id, ud.rows[0].id]);
 
         await client.query('COMMIT');
@@ -494,7 +493,7 @@ app.post('/api/notifications/subscribe', authenticateToken, async (req, res) => 
 
 app.post('/api/notifications/test', authenticateToken, async (req, res) => {
     try {
-        // Respect user preference
+        // Учесть настройку пользователя
         const userRes = await pool.query('SELECT notifications_enabled FROM users WHERE id = $1', [req.user.id]);
         if (userRes.rows.length > 0 && userRes.rows[0].notifications_enabled === false) {
             return res.status(400).json({ error: 'Уведомления отключены' });
@@ -595,13 +594,13 @@ app.post('/api/auth/login', async (req, res) => {
         const validPassword = await bcrypt.compare(password, user.password);
         if (!validPassword) return res.status(400).json({ error: 'Неверный логин или пароль' });
 
-        // Check ban
+        // Проверить блокировку
         if (user.banned_until) {
             const until = new Date(user.banned_until).getTime();
             if (isNaN(until) === false) {
                 const now = Date.now();
                 if (until === -1 || until > now) {
-                    // banned (until === -1 -> forever)
+                    // заблокирован (until === -1 -> навсегда)
                     const reason = user.banned_reason || 'Причина не указана';
                     const untilText = until === -1 ? 'навсегда' : new Date(until).toISOString();
                     return res.status(403).json({ error: 'blocked', message: `Ваш аккаунт заблокирован до: ${untilText}. Причина: ${reason}` });
@@ -649,17 +648,17 @@ app.get('/api/chat/users', authenticateToken, async (req, res) => {
     }
 });
 
-// Chat API routes moved to server_chat.js (separate microservice on port 3001)
+// Chat API маршруты перенесены в server_chat.js (отдельный микросервис на порту 3001)
 
-// User submits deck for review
+// Пользователь отправляет колоду на модерацию
 app.post('/api/decks/:id/submit', authenticateToken, async (req, res) => {
     try {
         const deckId = req.params.id;
-        // Verify ownership
+        // Проверить право собственности
         const ud = await pool.query('SELECT * FROM user_decks WHERE deck_id = $1 AND user_id = $2', [deckId, req.user.id]);
         if (ud.rows.length === 0) return res.status(403).json({ error: 'Доступ запрещён' });
 
-        // Prevent duplicate pending submissions
+        // Предотвратить дублирование заявок в ожидании
         const exists = await pool.query("SELECT id FROM deck_publish_requests WHERE deck_id = $1 AND user_id = $2 AND status = 'pending'", [deckId, req.user.id]);
         if (exists.rows.length > 0) return res.status(400).json({ error: 'Заявка уже в рассмотрении' });
 
@@ -676,7 +675,7 @@ app.post('/api/decks/:id/submit', authenticateToken, async (req, res) => {
     }
 });
 
-// Admin: list submissions
+// Админ: список заявок
 app.get('/api/admin/submissions', authenticateToken, async (req, res) => {
     try {
         if (req.user.role !== 'admin') return res.status(403).json({ error: 'Доступ запрещён' });
@@ -701,7 +700,7 @@ app.get('/api/admin/submissions', authenticateToken, async (req, res) => {
     }
 });
 
-// Admin: ban/unban user
+// Админ: забанить/разбанить пользователя
 app.put('/api/admin/users/:id/ban', authenticateToken, async (req, res) => {
     try {
         if (req.user.role !== 'admin') return res.status(403).json({ error: 'Доступ запрещён' });
@@ -709,7 +708,7 @@ app.put('/api/admin/users/:id/ban', authenticateToken, async (req, res) => {
         const targetId = Number(req.params.id);
         if (isNaN(targetId)) return res.status(400).json({ error: 'Неверный id' });
 
-        // Prevent admin from banning other admins or self
+        // Предотвратить блокировку других администраторов или себя
         const target = await pool.query('SELECT id, username, role_id FROM users WHERE id = $1', [targetId]);
         if (target.rows.length === 0) return res.status(404).json({ error: 'Пользователь не найден' });
         const targetUser = target.rows[0];
@@ -720,10 +719,10 @@ app.put('/api/admin/users/:id/ban', authenticateToken, async (req, res) => {
         if (targetUser.id === req.user.id) return res.status(400).json({ error: 'Нельзя заблокировать самого себя' });
         if (targetRole === 'admin') return res.status(400).json({ error: 'Нельзя заблокировать другого администратора' });
 
-        // Body: { until: timestamp|null|'forever', reason: string }
+        // Тело: { until: timestamp|null|'forever', reason: string }
         const { until, reason } = req.body;
         let banned_until = null;
-        if (until === 'forever') banned_until = new Date(-1); // sentinel for forever
+        if (until === 'forever') banned_until = new Date(-1); // маркер для навсегда
         else if (until === null) banned_until = null;
         else if (typeof until === 'number') banned_until = new Date(until);
 
@@ -735,7 +734,7 @@ app.put('/api/admin/users/:id/ban', authenticateToken, async (req, res) => {
     }
 });
 
-// Admin: review submission (approve/reject)
+// Админ: рассмотреть заявку (одобрить/отклонить)
 app.put('/api/admin/submissions/:id', authenticateToken, async (req, res) => {
     try {
         if (req.user.role !== 'admin') return res.status(403).json({ error: 'Доступ запрещён' });
@@ -749,7 +748,7 @@ app.put('/api/admin/submissions/:id', authenticateToken, async (req, res) => {
         const submission = subRes.rows[0];
 
         if (action === 'approve') {
-            // Create or update public_decks entry for this deck
+            // Создать или обновить запись public_decks для этой колоды
             const langVal = lang || 'Английский';
             const catVal = category || '';
 
@@ -760,13 +759,13 @@ app.put('/api/admin/submissions/:id', authenticateToken, async (req, res) => {
             );
 
             const now = new Date();
-            // use reviewed_by column for admin id (some schemas use reviewed_by)
+            // Использовать колонку reviewed_by для id администратора (в некоторых схемах используется reviewed_by)
             await pool.query('UPDATE deck_publish_requests SET status = $1, reviewed_by = $2, reviewed_at = $3, category = $4 WHERE id = $5', ['approved', req.user.id, now, catVal, submissionId]);
 
             return res.json({ message: 'Одобрено' });
         } else if (action === 'reject') {
             const now = new Date();
-            // Optionally allow admin to include rejection reason in body
+            // При желании разрешить админу указать причину отклонения в теле запроса
             const rejectionReason = req.body.rejection_reason || null;
             if (rejectionReason) {
                 await pool.query('UPDATE deck_publish_requests SET status = $1, reviewed_by = $2, reviewed_at = $3, rejection_reason = $4 WHERE id = $5', ['rejected', req.user.id, now, rejectionReason, submissionId]);
@@ -803,7 +802,7 @@ app.put('/api/auth/profile', authenticateToken, async (req, res) => {
         );
         const u = result.rows[0];
 
-        // If the user has disabled notifications, remove push subscriptions and unregister socket
+        // Если пользователь отключил уведомления, удалить push-подписки и отменить регистрацию сокета
         if (notifications_enabled === false) {
             try {
                 await pool.query('DELETE FROM push_subscriptions WHERE user_id = $1', [req.user.id]);
@@ -818,7 +817,7 @@ app.put('/api/auth/profile', authenticateToken, async (req, res) => {
                     const sock = io.sockets.sockets.get(sid);
                     if (sock) sock.disconnect(true);
                 } catch (e) {
-                    // ignore
+                    // игнорировать
                 }
             }
         }
@@ -954,7 +953,7 @@ app.post('/api/activity', authenticateToken, async (req, res) => {
     }
 });
 
-// Sync data
+// Синхронизировать данные
 app.get('/api/sync', authenticateToken, async (req, res) => {
     try {
         const decksResult = await pool.query(
@@ -977,12 +976,12 @@ app.get('/api/sync', authenticateToken, async (req, res) => {
 
 app.put('/api/sync', authenticateToken, async (req, res) => {
     try {
-        const { decks } = req.body; // Full sync
+        const { decks } = req.body; // Полная синхронизация
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
-            // This logic is complex for sync. For brevity, assuming user syncs only their "created" decks locally.
-            // If they modify public decks, it's not well defined in sync. We will only clear simple created ones.
+            // Эта логика сложная для синхронизации. Для краткости предполагается, что пользователь синхронизует только свои локально созданные колоды.
+            // Если он изменяет публичные колоды, это не хорошо определено в синхронизации. Мы очистим только простые созданные колоды.
             res.json({ message: 'Синхронизация через put не поддерживается в новом API, используйте POST /api/decks' });
             await client.query('COMMIT');
         } catch (error) {
@@ -996,7 +995,7 @@ app.put('/api/sync', authenticateToken, async (req, res) => {
     }
 });
 
-// DECKS API (Universal)
+// API КОЛОД (универсальное)
 app.get('/api/decks', authenticateToken, async (req, res) => {
     try {
         const result = await pool.query(
@@ -1015,7 +1014,7 @@ app.get('/api/decks', authenticateToken, async (req, res) => {
     }
 });
 
-// Create Deck - Now creates in 'decks' then links in 'user_decks'
+// Создать колоду — теперь создаём в 'decks', затем связываем в 'user_decks'
 app.post('/api/decks', authenticateToken, async (req, res) => {
     const client = await pool.connect();
     try {
@@ -1044,17 +1043,17 @@ app.post('/api/decks', authenticateToken, async (req, res) => {
     }
 });
 
-// Add an existing public deck to user's decks without duplicating
+// Добавить существующую публичную колоду пользователю без дублирования
 app.post('/api/decks/:id/add', authenticateToken, async (req, res) => {
     try {
         const deckId = req.params.id;
 
-        // Ensure this deck is in public_decks
+        // Убедиться, что эта колода есть в public_decks
         const pd = await pool.query('SELECT deck_id FROM public_decks WHERE deck_id = $1', [deckId]);
         if (pd.rows.length === 0) return res.status(400).json({ error: 'Колода не найдена в публичной библиотеке' });
 
-        // If user already has a copy from this public deck with exactly same cards,
-        // return that copy instead of creating a duplicate.
+        // Если у пользователя уже есть копия этой публичной колоды с точно такими же карточками,
+        // вернуть эту копию вместо создания дубликата.
         const sourceSignature = await getDeckCardSignature(pool, deckId);
         const existingPublicCopies = await pool.query(
             `SELECT id, deck_id, source, public_deck_id
@@ -1079,7 +1078,7 @@ app.post('/api/decks/:id/add', authenticateToken, async (req, res) => {
             }
         }
 
-        // No mapping exists: create a private copy and map it
+        // Нет сопоставления: создать приватную копию и связать её
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
@@ -1091,7 +1090,7 @@ app.post('/api/decks/:id/add', authenticateToken, async (req, res) => {
             const ins = await client.query('INSERT INTO decks (name, description) VALUES ($1, $2) RETURNING *', [d.name, d.description || '']);
             const newDeck = ins.rows[0];
 
-            // Copy image if any
+            // Скопировать изображение, если есть
             const img = await client.query('SELECT image_data, mime_type FROM deck_images WHERE deck_id = $1', [deckId]);
             if (img.rows.length > 0) {
                 await client.query('INSERT INTO deck_images (deck_id, image_data, mime_type) VALUES ($1, $2, $3)', [newDeck.id, img.rows[0].image_data, img.rows[0].mime_type]);
@@ -1103,18 +1102,18 @@ app.post('/api/decks/:id/add', authenticateToken, async (req, res) => {
                 newDeck.custom_image = d.custom_image;
             }
 
-            // Copy cards
+            // Скопировать карточки
             const cards = await client.query('SELECT front, back, is_favorite, is_forgotten FROM cards WHERE deck_id = $1 ORDER BY created_at ASC', [deckId]);
             for (const c of cards.rows) {
                 await client.query('INSERT INTO cards (deck_id, front, back, is_favorite, is_forgotten) VALUES ($1, $2, $3, $4, $5)', [newDeck.id, c.front, c.back, c.is_favorite, c.is_forgotten]);
             }
 
-            // Insert mapping
+            // Вставить сопоставление
             await client.query('INSERT INTO user_decks (user_id, deck_id, source, public_deck_id) VALUES ($1, $2, $3, $4)', [req.user.id, newDeck.id, 'public', deckId]);
 
             await client.query('COMMIT');
 
-            // Return created deck
+            // Вернуть созданную колоду
             const cardsRes = await pool.query('SELECT * FROM cards WHERE deck_id = $1 ORDER BY created_at DESC', [newDeck.id]);
             const udRes = await pool.query('SELECT id, source, public_deck_id FROM user_decks WHERE user_id = $1 AND deck_id = $2', [req.user.id, newDeck.id]);
             newDeck.user_deck_id = udRes.rows[0] ? udRes.rows[0].id : null;
@@ -1137,22 +1136,22 @@ app.post('/api/decks/:id/add', authenticateToken, async (req, res) => {
 });
 
 app.delete('/api/decks/:id', authenticateToken, async (req, res) => {
-    // Delete user deck. If source=created, should we delete main deck? 
-    // Yes, simple approach.
+    // Удалить пользовательскую колоду. Если source='created', нужно ли удалять основную запись колоды?
+    // Да, простой подход.
     try {
         const ud = await pool.query('SELECT * FROM user_decks WHERE deck_id = $1 AND user_id = $2', [req.params.id, req.user.id]);
         if (ud.rows.length === 0) return res.status(404).json({ error: 'Колода не найдена' });
 
-        // Remove mapping for this user
+        // Удалить сопоставление для этого пользователя
         await pool.query('DELETE FROM user_decks WHERE deck_id = $1 AND user_id = $2', [req.params.id, req.user.id]);
 
-        // If there are no more mappings and this deck is not a public canonical deck, delete the deck row
+        // Если больше нет сопоставлений и эта колода не является публичной канонической, удалить запись колоды
         const remaining = await pool.query('SELECT COUNT(*) FROM user_decks WHERE deck_id = $1', [req.params.id]);
         const pub = await pool.query('SELECT deck_id FROM public_decks WHERE deck_id = $1', [req.params.id]);
         const remainingCount = Number(remaining.rows[0].count || 0);
 
         if (remainingCount === 0 && pub.rows.length === 0) {
-            // safe to remove the deck itself
+            // безопасно удалить саму колоду
             await pool.query('DELETE FROM decks WHERE id = $1', [req.params.id]);
         }
 
@@ -1166,7 +1165,7 @@ app.put('/api/decks/:id', authenticateToken, async (req, res) => {
     try {
         const { name, description, custom_image } = req.body;
 
-        // Ensure user owns and get a writable deck id (copy if needed)
+        // Убедиться, что пользователь владеет колодой и получить редактируемую колоду (копирование при необходимости)
         const ensure = await ensureUserHasWritableDeck(req.user.id, req.params.id);
         if (!ensure.ok) {
             if (ensure.error === 'not_found') return res.status(404).json({ error: 'Доступ запрещён' });
@@ -1175,7 +1174,7 @@ app.put('/api/decks/:id', authenticateToken, async (req, res) => {
 
         const targetDeckId = ensure.deckId;
 
-        // Ensure mapping exists for the final deck id
+        // Убедиться, что существует сопоставление для окончательного id колоды
         const ud = await pool.query('SELECT * FROM user_decks WHERE deck_id = $1 AND user_id = $2', [targetDeckId, req.user.id]);
         if (ud.rows.length === 0) return res.status(404).json({ error: 'Доступ запрещён' });
 
@@ -1194,7 +1193,7 @@ app.post('/api/decks/:id/image', authenticateToken, upload.single('image'), asyn
     try {
         if (!req.file) return res.status(400).json({ error: 'Изображение не загружено' });
 
-        // Ensure user has writable deck (copy-on-write if needed)
+        // Убедиться, что у пользователя есть редактируемая колода (копирование при записи при необходимости)
         const ensure = await ensureUserHasWritableDeck(req.user.id, req.params.id);
         if (!ensure.ok) {
             if (ensure.error === 'not_found') return res.status(404).json({ error: 'Доступ запрещён' });
@@ -1229,7 +1228,7 @@ app.get('/api/decks/:id/image', async (req, res) => {
     }
 });
 
-// CARDS API
+// API КАРТОЧЕК
 app.get('/api/decks/:id/cards', authenticateToken, async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM cards WHERE deck_id = $1', [req.params.id]);
@@ -1243,7 +1242,7 @@ app.post('/api/decks/:id/cards', authenticateToken, async (req, res) => {
     try {
         const { front, back } = req.body;
 
-        // Ensure user has writable deck (copy-on-write if needed)
+        // Убедиться, что у пользователя есть редактируемая колода (копирование при записи при необходимости)
         const ensure = await ensureUserHasWritableDeck(req.user.id, req.params.id);
         if (!ensure.ok) {
             if (ensure.error === 'not_found') return res.status(404).json({ error: 'Доступ запрещён' });
@@ -1263,12 +1262,12 @@ app.post('/api/decks/:id/cards', authenticateToken, async (req, res) => {
 
 app.put('/api/cards/:id/favorite', authenticateToken, async (req, res) => {
     try {
-        // Determine card and deck
+        // Определить карточку и колоду
         const cardRow = await pool.query('SELECT id, deck_id FROM cards WHERE id = $1', [req.params.id]);
         if (cardRow.rows.length === 0) return res.status(404).json({ error: 'Карточка не найдена' });
 
         const deckId = cardRow.rows[0].deck_id;
-        // Ensure user owns this deck and perform copy-on-write if needed
+        // Убедиться, что пользователь владеет этой колодой, и при необходимости выполнить копирование при записи
         const udCheck = await pool.query('SELECT * FROM user_decks WHERE user_id = $1 AND deck_id = $2', [req.user.id, deckId]);
         if (udCheck.rows.length === 0) return res.status(404).json({ error: 'Доступ запрещён' });
 
@@ -1368,12 +1367,12 @@ app.put('/api/cards/:id', authenticateToken, async (req, res) => {
 
         if (updates.length === 0) return res.status(400).json({ error: 'Нет данных' });
 
-        // Find card and deck
+        // Найти карточку и колоду
         const cardRow = await pool.query('SELECT id, deck_id FROM cards WHERE id = $1', [req.params.id]);
         if (cardRow.rows.length === 0) return res.status(404).json({ error: 'Карточка не найдена' });
         const deckId = cardRow.rows[0].deck_id;
 
-        // Ensure user owns deck and get writable deck (copy if needed)
+        // Убедиться, что пользователь владеет колодой и получить редактируемую колоду (копирование при необходимости)
         const udCheck = await pool.query('SELECT * FROM user_decks WHERE user_id = $1 AND deck_id = $2', [req.user.id, deckId]);
         if (udCheck.rows.length === 0) return res.status(404).json({ error: 'Доступ запрещён' });
 
@@ -1400,12 +1399,12 @@ app.put('/api/cards/:id', authenticateToken, async (req, res) => {
 
 app.delete('/api/cards/:id', authenticateToken, async (req, res) => {
     try {
-        // Find card and its deck
+        // Найти карточку и её колоду
         const cardRow = await pool.query('SELECT id, deck_id FROM cards WHERE id = $1', [req.params.id]);
         if (cardRow.rows.length === 0) return res.status(404).json({ error: 'Карточка не найдена' });
         const deckId = cardRow.rows[0].deck_id;
 
-        // Ensure user owns mapping
+        // Убедиться, что пользователь владеет сопоставлением
         const udCheck = await pool.query('SELECT * FROM user_decks WHERE user_id = $1 AND deck_id = $2', [req.user.id, deckId]);
         if (udCheck.rows.length === 0) return res.status(404).json({ error: 'Доступ запрещён' });
 
@@ -1429,7 +1428,7 @@ app.delete('/api/cards/:id', authenticateToken, async (req, res) => {
     }
 });
 
-// ADMIN ROUTES
+// МАРШРУТЫ АДМИНА
 app.get('/api/admin/users', authenticateToken, async (req, res) => {
     try {
         if (req.user.role !== 'admin') return res.status(403).json({ error: 'Доступ запрещён' });
@@ -1453,7 +1452,7 @@ app.put('/api/admin/users/:id/role', authenticateToken, async (req, res) => {
     }
 });
 
-// PUBLIC DECKS ROUTES
+// МАРШРУТЫ ПУБЛИЧНЫХ КОЛОД
 app.get('/api/admin/public-decks', authenticateToken, async (req, res) => {
     try {
         if (req.user.role !== 'admin') return res.status(403).json({ error: 'Доступ запрещён' });
@@ -1493,7 +1492,7 @@ app.post('/api/admin/public-decks', authenticateToken, async (req, res) => {
 });
 
 app.put('/api/admin/public-decks/:id', authenticateToken, async (req, res) => {
-    // Left simple assuming ID is deck_id for public decks updating
+    // Упрощено: предполагаем, что ID — это deck_id для обновления публичных колод
     try {
         if (req.user.role !== 'admin') return res.status(403).json({ error: 'Доступ запрещён' });
         const { name, description, lang, category, custom_image } = req.body;
@@ -1529,7 +1528,7 @@ app.post('/api/admin/public-decks/:id/image', authenticateToken, upload.single('
 app.delete('/api/admin/public-decks/:id', authenticateToken, async (req, res) => {
     try {
         if (req.user.role !== 'admin') return res.status(403).json({ error: 'Доступ запрещён' });
-        // Only remove the public_decks entry so user's original deck is not deleted
+        // Удаляем только запись из public_decks, чтобы оригинальная колода пользователя не удалялась
         await pool.query('DELETE FROM public_decks WHERE deck_id = $1', [req.params.id]);
         res.json({ message: 'Колода удалена из библиотеки' });
     } catch (error) {
@@ -1593,13 +1592,13 @@ app.get('/api/public-decks/:id/cards', async (req, res) => {
     }
 });
 
-// CRON JOB для проверки активности пользователей (выполняется каждый день в полночь)
+// CRON-задача для проверки активности пользователей (выполняется каждый день в полночь)
 cron.schedule('0 0 * * *', async () => {
     console.log('Running daily notification check...');
     try {
         const _users = await pool.query("SELECT id, last_study_date FROM users");
         for (let user of _users.rows) {
-            // Check user's notification preference
+            // Проверить настройку уведомлений пользователя
             const pref = await pool.query('SELECT notifications_enabled FROM users WHERE id = $1', [user.id]);
             if (pref.rows.length > 0 && pref.rows[0].notifications_enabled === false) continue;
             if (user.last_study_date) {
@@ -1636,10 +1635,10 @@ io.on('connection', (socket) => {
     socket.on('register', async (userId) => {
         try {
             console.log('Registering user', userId, 'socket', socket.id);
-            // Check if user has disabled notifications
+            // Проверить, отключил ли пользователь уведомления
             const pref = await pool.query('SELECT notifications_enabled FROM users WHERE id = $1', [userId]);
             if (pref.rows.length > 0 && pref.rows[0].notifications_enabled === false) {
-                // Do not register socket or send notifications
+                // Не регистрировать сокет и не отправлять уведомления
                 return;
             }
 

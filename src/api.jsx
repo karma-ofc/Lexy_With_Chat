@@ -1,7 +1,7 @@
-// API Service for connecting to backend
+// Сервис API для подключения к бэкенду
 const API_URL = '/api';
 
-// Helper function to get auth headers
+// Вспомогательная функция для получения заголовков авторизации
 function getAuthHeaders() {
     const token = localStorage.getItem('lexy_token');
     return token ? { 'Authorization': `Bearer ${token}` } : {};
@@ -65,7 +65,7 @@ async function readJsonResponse(response, fallbackError) {
 }
 
 export const api = {
-    // Auth endpoints
+    // Эндпоинты авторизации
     async register(name, username, password) {
         const response = await fetch(`${API_URL}/auth/register`, {
             method: 'POST',
@@ -159,7 +159,7 @@ export const api = {
         return data;
     },
 
-    // Activity endpoints
+    // Эндпоинты активности
     async getActivity() {
         const response = await fetch(`${API_URL}/activity`, {
             headers: getAuthHeaders()
@@ -180,7 +180,7 @@ export const api = {
         return data;
     },
 
-    // Decks endpoints
+    // Эндпоинты колод
     async getDecks() {
         const response = await fetch(`${API_URL}/decks`, {
             headers: getAuthHeaders()
@@ -265,7 +265,7 @@ export const api = {
         return readJsonResponse(response, 'Failed to upload image');
     },
 
-    // Cards endpoints
+    // Эндпоинты карточек
     async getCards(deckId) {
         const response = await fetch(`${API_URL}/decks/${deckId}/cards`, {
             headers: getAuthHeaders()
@@ -383,7 +383,7 @@ export const api = {
         return data;
     },
 
-    // Sync endpoints
+    // Эндпоинты синхронизации
     async syncGet() {
         const response = await fetch(`${API_URL}/sync`, {
             headers: getAuthHeaders()
@@ -404,7 +404,7 @@ export const api = {
         return data;
     },
 
-    // Public decks (for all users)
+    // Публичные колоды (для всех пользователей)
     async getPublicDecks() {
         const response = await fetch(`${API_URL}/public-decks`);
         const data = await response.json();
@@ -419,7 +419,7 @@ export const api = {
         return data;
     },
 
-    // Admin: Public decks management
+    // Админ: управление публичными колодами
     async getAdminPublicDecks() {
         const response = await fetch(`${API_URL}/admin/public-decks`, {
             headers: getAuthHeaders()
@@ -502,7 +502,7 @@ export const api = {
         return data;
     },
 
-    // Admin endpoints
+    // Админские эндпоинты
     async getAllUsers() {
         const response = await fetch(`${API_URL}/admin/users`, {
             headers: getAuthHeaders()
@@ -527,7 +527,7 @@ export const api = {
         return data;
     },
 
-    // Submission endpoints
+    // Эндпоинты отправки
     async submitDeck(deckId, message = '') {
         const response = await fetch(`${API_URL}/decks/${deckId}/submit`, {
             method: 'POST',

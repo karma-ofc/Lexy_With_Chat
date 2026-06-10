@@ -11,7 +11,7 @@ export default function Admin({ onShowNotification, onNavigate }) {
   const [loadingDecks, setLoadingDecks] = useState(true);
   const [loadingSubmissions, setLoadingSubmissions] = useState(true);
   
-  // Modal states
+  // Состояния модальных окон
   const [showDeckModal, setShowDeckModal] = useState(false);
   const [showCardsModal, setShowCardsModal] = useState(false);
   const [currentEditingDeckId, setCurrentEditingDeckId] = useState(null);
@@ -19,7 +19,7 @@ export default function Admin({ onShowNotification, onNavigate }) {
   const [currentCardsDeckName, setCurrentCardsDeckName] = useState('');
   const [publicCards, setPublicCards] = useState([]);
   
-  // Form states
+  // Состояния формы
   const [deckName, setDeckName] = useState('');
   const [deckDescription, setDeckDescription] = useState('');
   const [deckLang, setDeckLang] = useState('Английский');
@@ -29,7 +29,7 @@ export default function Admin({ onShowNotification, onNavigate }) {
   const [newCardFront, setNewCardFront] = useState('');
   const [newCardBack, setNewCardBack] = useState('');
   
-  // Ban popover states
+  // Состояния поповера блокировки
   const [activeBanPopover, setActiveBanPopover] = useState(null);
   const [banReason, setBanReason] = useState('');
   const [banDuration, setBanDuration] = useState('1');
@@ -58,7 +58,7 @@ export default function Admin({ onShowNotification, onNavigate }) {
     }
   }, [showNotification]);
 
-  // Global refresh function for Auth component
+  // Глобальная функция обновления для компонента Auth
   window.refreshAdminData = () => {
     loadUsers();
     loadPublicDecks();
@@ -105,7 +105,7 @@ export default function Admin({ onShowNotification, onNavigate }) {
     loadPublicDecks();
     loadSubmissions();
 
-    // Register global init function
+    // Регистрируем глобальную функцию инициализации
     window.initAdminPage = () => {
       loadUsers();
       loadPublicDecks();
@@ -113,7 +113,7 @@ export default function Admin({ onShowNotification, onNavigate }) {
     };
   }, [loadUsers, loadPublicDecks, loadSubmissions, onNavigate, showNotification]);
 
-  // Filter users on search
+  // Фильтруем пользователей при поиске
   useEffect(() => {
     if (searchQuery.trim() === '') {
       setFilteredUsers(users);
@@ -128,7 +128,7 @@ export default function Admin({ onShowNotification, onNavigate }) {
   }, [searchQuery, users]);
 
   const handleSearch = () => {
-    // Search is handled by useEffect
+    // Поиск обрабатывается в useEffect
   };
 
   const openBanMenu = (event, userId, username) => {

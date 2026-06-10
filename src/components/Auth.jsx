@@ -173,7 +173,7 @@ export default function Auth({ onAuthSuccess, onShowNotification }) {
         if (serverData && serverData.decks && serverData.decks.length > 0) {
           const serverCards = serverData.cards || [];
 
-          // Build favorite deck from server data
+          // Формируем колоду избранного из данных сервера
           const favoriteCards = serverCards
             .filter(card => card.is_favorite === true || card.is_favorite === 'true')
             .map(card => ({
@@ -187,7 +187,7 @@ export default function Auth({ onAuthSuccess, onShowNotification }) {
               nextReview: card.next_review
             }));
 
-          // Build forgotten deck from server data
+          // Формируем колоду забытых карт из данных сервера
           const forgottenCards = serverCards
             .filter(card => card.is_forgotten === true || card.is_forgotten === 'true')
             .map(card => ({
@@ -241,7 +241,7 @@ export default function Auth({ onAuthSuccess, onShowNotification }) {
             });
           }
         } else if (localDecks && localDecks.length > 0 && window.AppState) {
-          // Server is empty, sync local decks to server
+          // Сервер пуст, синхронизируем локальные колоды на сервер
           await api.syncSave(localDecks);
           const updatedData = await api.syncGet();
           if (updatedData && updatedData.decks) {
@@ -396,7 +396,7 @@ export default function Auth({ onAuthSuccess, onShowNotification }) {
         window.subscribeUserToPush();
       }
 
-      // Trigger data refresh for all components after successful login
+      // Запускаем обновление данных для всех компонентов после успешного входа
       setTimeout(() => {
         if (typeof window.refreshMyDecks === 'function') {
           window.refreshMyDecks();
@@ -422,7 +422,7 @@ export default function Auth({ onAuthSuccess, onShowNotification }) {
     }
   };
 
-  // Экспортируем функции в глобальную область для совместимости с existing code
+  // Экспортируем функции в глобальную область для совместимости с существующим кодом
   useEffect(() => {
     window.openAuthModal = openAuthModal;
     window.closeAuthModal = closeAuthModal;

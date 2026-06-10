@@ -127,7 +127,7 @@ async function ensureChatSchema(client) {
     await client.query(`ALTER TABLE chat_messages ALTER COLUMN iv DROP NOT NULL`);
     await client.query(`ALTER TABLE chat_messages ALTER COLUMN auth_tag DROP NOT NULL`);
 
-    // Remove denormalized columns for 3NF compliance
+    // Удалить денормализованные столбцы в соответствии с 3NF
     await client.query(`ALTER TABLE chat_messages DROP COLUMN IF EXISTS sender_name`);
     await client.query(`ALTER TABLE chat_messages DROP COLUMN IF EXISTS sender_username`);
     await client.query(`ALTER TABLE chat_messages DROP COLUMN IF EXISTS sender_avatar`);
@@ -302,7 +302,7 @@ async function insertRows(client, tableName, rows) {
         return;
     }
 
-    // Get existing columns in target table
+    // Получить существующие столбцы в целевой таблице
     const columnResult = await client.query(`
         SELECT column_name
         FROM information_schema.columns
@@ -517,7 +517,7 @@ async function autoMigrate() {
         await sourceClient.connect();
         await targetClient.connect();
 
-        // Check if migration is needed
+        // Проверить, нужна ли миграция
         const needsMigration = await isMigrationNeeded(sourceClient, targetClient);
         
         if (!needsMigration) {

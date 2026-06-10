@@ -247,7 +247,7 @@ export default function Chat({ currentUser, socket, onShowNotification, onUnread
         const response = await chatApi.getGroupMessages(groupId);
         const messages = Array.isArray(response?.messages) ? response.messages : [];
         setMessages(enrichMessagesWithSenders(messages));
-        // TODO: mark group messages as read
+        // НАДО: отметить групповые сообщения как прочитанными
       }
     } catch (error) {
       console.error('loadMessages error:', error);
@@ -257,7 +257,7 @@ export default function Chat({ currentUser, socket, onShowNotification, onUnread
           : (error.message || 'Не удалось загрузить сообщения группы');
         onShowNotification(errorMessage, 'error');
       }
-      // Set empty messages to prevent crash
+      // Устанавливаем пустые сообщения, чтобы избежать падения
       setMessages([]);
     }
   };
@@ -273,7 +273,7 @@ export default function Chat({ currentUser, socket, onShowNotification, onUnread
       }
     } catch (error) {
       console.error('Active chat change error:', error);
-      // Reset to safe state
+      // Сбрасываем к безопасному состоянию
       setActiveUserId(null);
       setActiveGroupId(null);
       setMessages([]);
@@ -288,7 +288,7 @@ export default function Chat({ currentUser, socket, onShowNotification, onUnread
     if (!activeSocket) return undefined;
 
     const handleNewMessage = async (message) => {
-      // Handle group messages
+      // Обрабатываем групповые сообщения
       if (message.group_id) {
         setGroups((prev) => {
           const targetGroup = prev.find((group) => Number(group.id) === Number(message.group_id));
@@ -306,7 +306,7 @@ export default function Chat({ currentUser, socket, onShowNotification, onUnread
         });
 
         if (Number(activeGroupRef.current) === Number(message.group_id)) {
-          // For group messages, if the sender is the current user, don't add because it's already added from API response
+          // Для групповых сообщений, если отправитель — текущий пользователь, не добавляем, так как сообщение уже добавлено из ответа API
           if (Number(message.sender_id) !== Number(currentUser?.id)) {
             setMessages((prev) => {
               if (prev.some((item) => item.id === message.id)) return prev;
@@ -315,11 +315,11 @@ export default function Chat({ currentUser, socket, onShowNotification, onUnread
             });
           }
         }
-        // TODO: Update group unread count
+        // НАДО: обновить счётчик непрочитанных групповых сообщений
         return;
       }
 
-      // Handle direct messages
+      // Обрабатываем личные сообщения
       const otherParticipantId = Number(message.sender_id) === Number(currentUser?.id)
         ? Number(message.recipient_id)
         : Number(message.sender_id);
@@ -447,7 +447,7 @@ export default function Chat({ currentUser, socket, onShowNotification, onUnread
     });
   }, [search, users]);
 
-  // Left list: if searching show matching users and groups, otherwise show users who have threads and all groups (ordered by threads then groups)
+  // Левая панель: если поиск активен, показываем совпадающих пользователей и группы, иначе показываем пользователей с чатами и все группы (по потоку и группам)
   const leftList = useMemo(() => {
     const q = search.trim();
     if (q) {
@@ -457,9 +457,9 @@ export default function Chat({ currentUser, socket, onShowNotification, onUnread
       return [...matchingUsers, ...matchingGroups.map(g => ({ ...g, isGroup: true }))];
     }
 
-    // Map participant_id -> thread for quick lookup
+    // Сопоставляем participant_id с потоком для быстрого поиска
     const threadMap = new Map(threads.map((t) => [Number(t.participant_id), t]));
-    // Order by threads array (which is already sorted by last_message_at)
+    // Сортируем по массиву потоков (уже отсортирован по last_message_at)
     const threadUsers = threads
       .map((t) => users.find((u) => Number(u.id) === Number(t.participant_id)))
       .filter(Boolean);

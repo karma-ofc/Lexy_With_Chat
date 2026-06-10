@@ -44,7 +44,7 @@ function App() {
   }
   const isAuthorized = Boolean(token && user);
 
-  // Footer modal data
+  // Данные для модального окна в подвале
   const footerModalData = {
     'terms-conditions': {
       title: 'Terms and Conditions',
@@ -391,14 +391,14 @@ function App() {
     }, { passive: true });
   }, []);
 
-  // Global save function
+  // Глобальная функция сохранения
   window.saveState = () => {
     if (window.AppState) {
       localStorage.setItem('linguaState', JSON.stringify(window.AppState));
     }
   };
 
-  // Load state
+  // Загрузить состояние
   const loadAppState = () => {
     try {
       const saved = localStorage.getItem('linguaState');
@@ -460,7 +460,7 @@ function App() {
             storedTheme = localUser.theme;
           }
         } catch (e) {
-          // ignore corrupted local user data
+          // игнорировать повреждённые локальные данные пользователя
         }
       }
 
@@ -530,7 +530,7 @@ function App() {
       updateAuthButton();
       initNavbarScrollEffect();
 
-      // Initialize tab visibility based on current auth state
+      // Инициализация видимости вкладок на основе текущего состояния авторизации
       const token = localStorage.getItem('lexy_token');
       const userStr = localStorage.getItem('lexy_user');
       let user = null;

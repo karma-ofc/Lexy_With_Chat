@@ -103,7 +103,7 @@ export default function Profile({ onLogout, onShowNotification, onNavigate }) {
     setIsLightTheme(localUser.theme === 'light');
     setNotificationsDisabled(!(localUser.notifications_enabled !== false));
 
-    // Refresh from server to ensure latest notifications preference
+    // Обновляем с сервера, чтобы получить актуальные настройки уведомлений
     if (localStorage.getItem('lexy_token') && api) {
       try {
         const me = await api.getMe();
@@ -147,7 +147,7 @@ export default function Profile({ onLogout, onShowNotification, onNavigate }) {
   useEffect(() => {
     loadProfile();
 
-    // Register global init function
+    // Регистрируем глобальную функцию инициализации
     window.initProfilePage = () => {
       if (!loadingRef.current) loadProfile();
     };
