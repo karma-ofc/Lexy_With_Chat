@@ -54,11 +54,13 @@ test.describe('Lexy MyDecks + Library UI flows', () => {
       await page.goto('/');
       page.on('dialog', (dialog) => dialog.accept().catch(() => {}));
       await page.click('#authBtn');
+      await expect(page.locator('#loginForm')).toBeVisible({ timeout: 10000 });
       await page.fill('#loginUsername', username);
       await page.fill('#loginPassword', password);
       await page.click('#loginForm button[type="submit"]');
 
-      await expect(page.getByRole('heading', { name: 'Профиль' })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Профиль' })).toBeVisible({ timeout: 15000 });
+      await expect(page.getByRole('heading', { name: 'Профиль' })).toBeVisible({ timeout: 15000 });
 
       await page.click('button[data-tab="mydecks"]');
       await expect(page.getByRole('heading', { name: 'Мои колоды' })).toBeVisible();
@@ -94,7 +96,10 @@ test.describe('Lexy MyDecks + Library UI flows', () => {
       const nameInput = page.locator('.auth-container input[type="text"]');
       await expect(nameInput).toBeVisible();
       await nameInput.fill(updatedDeckName);
-      await page.locator('.auth-container').getByRole('button', { name: 'Сохранить' }).click();
+      const saveNameButton = page.locator('.auth-container:has(input[type="text"]) button:has-text("Сохранить")').first();
+      await expect(saveNameButton).toBeVisible({ timeout: 10000 });
+      await saveNameButton.scrollIntoViewIfNeeded();
+      await saveNameButton.click({ timeout: 20000 });
 
       await expect(page.locator('.deck-card', { hasText: updatedDeckName })).toBeVisible();
 
@@ -102,7 +107,10 @@ test.describe('Lexy MyDecks + Library UI flows', () => {
       await updatedDeckCard.locator('.menu-btn').click();
       await page.click('button:has-text("Изменить обложку")');
       await page.setInputFiles('#menuImageInput', imagePath);
-      await page.locator('.auth-container').getByRole('button', { name: 'Сохранить' }).click();
+      const saveImageButton = page.locator('.auth-container:has(#menuImageInput) button:has-text("Сохранить")').first();
+      await expect(saveImageButton).toBeVisible({ timeout: 10000 });
+      await saveImageButton.scrollIntoViewIfNeeded();
+      await saveImageButton.click({ timeout: 20000 });
       await expect(page.locator('.deck-card', { hasText: updatedDeckName }).locator('img')).toBeVisible();
 
       await page.click('button[data-tab="library"]');
