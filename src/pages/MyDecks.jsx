@@ -47,8 +47,19 @@ export default function MyDecks({ onShowNotification }) {
   });
 
   // Функционал загрузки
-  const fetchDecks = async () => {
-    if (loadingRef.current) return;
+  const fetchDecks = async (force = false) => {
+    if (loadingRef.current && !force) return;
+    if (loadingRef.current && force) {
+      await new Promise((resolve) => {
+        const interval = setInterval(() => {
+          if (!loadingRef.current) {
+            clearInterval(interval);
+            resolve();
+          }
+        }, 50);
+      });
+    }
+
     loadingRef.current = true;
     try {
       const data = await api.getMyDecks();
@@ -71,7 +82,7 @@ export default function MyDecks({ onShowNotification }) {
 
   // Глобальная функция обновления для компонента Auth
   window.refreshMyDecks = () => {
-    fetchDecks();
+    fetchDecks(true);
     loadPermanentDecks();
   };
 
@@ -180,7 +191,7 @@ export default function MyDecks({ onShowNotification }) {
       }
     }
 
-    fetchDecks();
+    await fetchDecks(true);
   };
 
   const handleSubmitToLibrary = async (deckId, message) => {
@@ -403,13 +414,19 @@ export default function MyDecks({ onShowNotification }) {
 
     // Записываем активность
     const today = new Date().toISOString().split('T')[0];
-    if (window.AppState?.user?.activity) {
+    if (window.AppState?.user) {
+      window.AppState.user.activity = window.AppState.user.activity || {};
       window.AppState.user.activity[today] = (window.AppState.user.activity[today] || 0) + 1;
+      window.saveState?.();
     }
 
-    try { await api.recordActivity(1, today); } catch(e) { console.error('recordActivity error', e); } 
+    try {
+      await api.recordActivity(1, today);
+    } catch (e) {
+      console.error('recordActivity error', e);
+    }
 
-      if (knew) { 
+    if (knew) {
         if (isForgottenDeck) {
         try {
           await api.syncUpdateCardForgotten(currentCard.id, false);

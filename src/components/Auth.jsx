@@ -360,7 +360,7 @@ export default function Auth({ onAuthSuccess, onShowNotification }) {
 
       if (!window.AppState) {
         window.AppState = {
-          user: {},
+          user: { activity: {} },
           userDecks: [],
           favoriteDeck: { id: 'favorite', name: 'Избранное', cards: [] },
           forgottenDeck: { id: 'forgotten', name: 'Забытые карты', cards: [] }
@@ -369,6 +369,7 @@ export default function Auth({ onAuthSuccess, onShowNotification }) {
 
       window.AppState.user = {
         ...window.AppState.user,
+        activity: window.AppState.user?.activity || {},
         ...result.user,
         isRegistered: true,
         notifications_enabled: result.user.notifications_enabled !== undefined ? result.user.notifications_enabled : true,

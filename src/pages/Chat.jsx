@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Icon } from '../components/Icons';
 import { api } from '../api';
 import chatApi from '../chatApi';
 

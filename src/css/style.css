@@ -3528,28 +3528,138 @@ input:focus, textarea:focus {
 
 /* Адаптивность */
 @media (max-width: 900px) {
+    .landing-page {
+        padding: 50px 16px 60px;
+    }
+
+    .hero-section {
+        padding: 40px 0 30px;
+    }
+
+    .hero-actions {
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .btn-primary,
+    .btn-cta {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .hero-description {
+        max-width: 100%;
+        margin-bottom: 24px;
+    }
+
+    .features-section {
+        padding: 40px 0;
+    }
+
+    .demo-section {
+        padding: 40px 0 70px;
+    }
+
+    .demo-decks-grid {
+        gap: 18px;
+        padding: 0 10px;
+    }
+
+    .demo-deck-card {
+        padding: 24px;
+    }
+
+    .demo-deck-icon {
+        font-size: 2.5rem;
+    }
+
+    .demo-deck-start {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
     .features-grid {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
 @media (max-width: 600px) {
+    .landing-page {
+        padding: 30px 12px 40px;
+    }
+
+    .hero-section {
+        padding: 30px 0 24px;
+    }
+
+    .hero-badge {
+        padding: 6px 12px;
+        font-size: 13px;
+        margin-bottom: 18px;
+    }
+
     .hero-title {
-        font-size: 32px;
+        font-size: 28px;
+        line-height: 1.08;
     }
     
     .hero-description {
-        font-size: 16px;
+        font-size: 15px;
+        margin-bottom: 20px;
+    }
+
+    .hero-actions {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .btn-primary,
+    .btn-cta {
+        padding: 14px 20px;
+    }
+
+    .features-section {
+        padding: 32px 0;
     }
     
     .features-grid {
         grid-template-columns: 1fr;
+        gap: 16px;
     }
     
-    .demo-card-actions {
-        flex-direction: column;
+    .demo-section {
+        padding: 30px 0 60px;
     }
-    
+
+    .demo-decks-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 0 10px;
+    }
+
+    .demo-deck-card {
+        padding: 22px;
+    }
+
+    .demo-deck-icon {
+        font-size: 2rem;
+        margin-bottom: 14px;
+    }
+
+    .demo-deck-card h3 {
+        font-size: 1.1rem;
+    }
+
+    .demo-deck-card p,
+    .demo-deck-start {
+        font-size: 0.95rem;
+    }
+
+    .demo-deck-start {
+        width: 100%;
+        padding: 12px 18px;
+    }
+
     .btn-demo-flip,
     .btn-demo-next {
         width: 100%;
